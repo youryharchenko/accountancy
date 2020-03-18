@@ -8,7 +8,9 @@ import (
 // Connect -
 func Connect(driverName string, connString string) (eng *xorm.Engine, err error) {
 	eng, err = xorm.NewEngine(driverName, connString)
-	//eng.SetLogLevel(core.LOG_WARNING)
+	if err != nil {
+		return
+	}
 	eng.ShowSQL(true)
 	eng.SetMapper(core.GonicMapper{})
 	return
