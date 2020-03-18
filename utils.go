@@ -1,4 +1,4 @@
-package lib
+package accountancy
 
 import (
 	"encoding/json"

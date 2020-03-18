@@ -1,4 +1,4 @@
-package lib
+package accountancy
 
 import (
 	"github.com/go-xorm/xorm"
