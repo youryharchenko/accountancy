@@ -1,0 +1,195 @@
+{
+    "check": {
+        "request": {
+            "body": {
+                "invoiceId": "1200000595"
+            },
+            "command": "check",
+            "service": "megapolissto",
+            "terminalId": "1179",
+            "transactionId": "470cd344-cf3d-4cc7-525d-b3100898ac29"
+        },
+        "response": {
+            "body": {
+                "amount": 191796,
+                "clientAddress": "",
+                "clientBirthday": "",
+                "clientDocument": "",
+                "clientIssueDate": "",
+                "clientIssuedBy": "",
+                "clientName": "Середа Тарас Олександрович",
+                "clientTaxNumber": "",
+                "invoiceId": "1200000595",
+                "partnerAccount": "UA053223130000026003000022338",
+                "partnerBank": "322313",
+                "partnerCode": "38636158",
+                "partnerName": "НІКО ІСТЛАЙН МЕГАПОЛІС ТОВ",
+                "partnerVAT": 20,
+                "purpose": "Оплата згідно наряд-замовлення №МІ032857 від 14.03.2020р., Середа Тарас Олександрович"
+            },
+            "command": "check",
+            "service": "megapolissto",
+            "status": 0,
+            "terminalId": "1179",
+            "transactionId": "470cd344-cf3d-4cc7-525d-b3100898ac29"
+        }
+    },
+    "entrStat": "entries",
+    "pay": {
+        "request": {
+            "body": {
+                "amount": 191796,
+                "clientAddress": "",
+                "clientBirthday": "",
+                "clientDocument": "",
+                "clientIssueDate": "",
+                "clientIssuedBy": "",
+                "clientName": "Середа Тарас Олександрович",
+                "clientTaxNumber": "",
+                "invoiceId": "1200000595",
+                "method": "card",
+                "partnerAccount": "UA053223130000026003000022338",
+                "partnerBank": "322313",
+                "partnerCode": "38636158",
+                "partnerComAccount": "UA053803770000035789100926364",
+                "partnerComDescription": "КРД iBox Інші доходи ТОВ \"НІКО ІМ\"",
+                "partnerName": "НІКО ІСТЛАЙН МЕГАПОЛІС ТОВ",
+                "payDate": "14.03.2020",
+                "purpose": "Оплата згідно наряд-замовлення №МІ032857 від 14.03.2020р., Середа Тарас Олександрович",
+                "purposeVAT": "в т.ч. ПДВ 319.66 грн."
+            },
+            "command": "pay",
+            "model": {
+                "bad-entries": [
+                    {
+                        "account-a": "'UA523803770000029241100911179'",
+                        "account-b": "'UA303803770000029207100911179'",
+                        "amount": "amount",
+                        "bank-a": 380377,
+                        "bank-b": 380377,
+                        "currency": 980,
+                        "flag": 1,
+                        "id-a": "'26547581'",
+                        "id-b": "'26547581'",
+                        "kind": [
+                            2,
+                            2
+                        ],
+                        "name-a": "'КРД iBox Розрах.ч/з POS-тер к ПТКС'",
+                        "name-b": "'КРД iBox Ав.салон НІКО'",
+                        "purpose": "'Внесення коштів через ПТКС №1179 за ' + payDate"
+                    },
+                    {
+                        "account-a": "'UA303803770000029207100911179'",
+                        "account-b": "'UA643803770000029092100911179'",
+                        "amount": "amount",
+                        "bank-a": 380377,
+                        "bank-b": 380377,
+                        "currency": 980,
+                        "flag": 1,
+                        "id-a": "'26547581'",
+                        "id-b": "'26547581'",
+                        "kind": [
+                            2,
+                            2
+                        ],
+                        "name-a": "'КРД iBox Ав.салон НІКО'",
+                        "name-b": "'КРД iBox тр.до зясування НІКО'",
+                        "purpose": "purpose + ', ' + purposeVAT"
+                    }
+                ],
+                "entries": [
+                    {
+                        "account-a": "'UA523803770000029241100911179'",
+                        "account-b": "'UA303803770000029207100911179'",
+                        "amount": "amount",
+                        "bank-a": 380377,
+                        "bank-b": 380377,
+                        "currency": 980,
+                        "flag": 1,
+                        "id-a": "'26547581'",
+                        "id-b": "'26547581'",
+                        "kind": [
+                            2,
+                            2
+                        ],
+                        "name-a": "'КРД iBox Розрах.ч/з POS-тер к ПТКС'",
+                        "name-b": "'КРД iBox Ав.салон НІКО'",
+                        "purpose": "'Внесення коштів через ПТКС №1179 за ' + payDate"
+                    },
+                    {
+                        "account-a": "'UA303803770000029207100911179'",
+                        "account-b": "'UA723803770000029025100911179'",
+                        "amount": "amount",
+                        "bank-a": 380377,
+                        "bank-b": 380377,
+                        "currency": 980,
+                        "flag": 1,
+                        "id-a": "'26547581'",
+                        "id-b": "'26547581'",
+                        "kind": [
+                            2,
+                            2
+                        ],
+                        "name-a": "'КРД iBox Ав.салон НІКО'",
+                        "name-b": "'КРД iBox в плат нас., Ав.салон НІКО'",
+                        "purpose": "'Прийняття платежів від ПТКС №1179 за ' + payDate"
+                    },
+                    {
+                        "account-a": "'UA723803770000029025100911179'",
+                        "account-b": "partnerAccount",
+                        "amount": "amount",
+                        "bank-a": 380377,
+                        "bank-b": "partnerBank",
+                        "currency": 980,
+                        "flag": 1,
+                        "id-a": "'26547581'",
+                        "id-b": "partnerCode",
+                        "kind": [
+                            14,
+                            14
+                        ],
+                        "name-a": "'КРД iBox в плат нас., Ав.салон НІКО'",
+                        "name-b": "partnerName",
+                        "purpose": "purpose + ', ' + purposeVAT"
+                    },
+                    {
+                        "account-a": "partnerComAccount",
+                        "account-b": "'UA833803770000065100100910123'",
+                        "amount": "Math.max(Math.round(amount * 0.01), 100)",
+                        "bank-a": 380377,
+                        "bank-b": 380377,
+                        "currency": 980,
+                        "flag": 1,
+                        "id-a": "partnerCode",
+                        "id-b": "'26547581'",
+                        "kind": [
+                            2,
+                            2
+                        ],
+                        "name-a": "partnerComDescription",
+                        "name-b": "'КРД ком.обсл.iBox Ав.салон НІКО'",
+                        "purpose": "'Комісійна винагорода за прийняті платежі від фіз.осіб ПТКС №1179 за ' + payDate"
+                    }
+                ]
+            },
+            "service": "megapolissto",
+            "terminalId": "1179",
+            "transactionId": "470cd344-cf3d-4cc7-525d-b3100898ac29"
+        },
+        "response": {
+            "body": {
+                "amount": 191796,
+                "externalTrxId": "31dfd671-9476-4f40-8435-52c368aefe68",
+                "invoiceId": "1200000595",
+                "method": "card"
+            },
+            "command": "pay",
+            "service": "megapolissto",
+            "status": 0,
+            "terminalId": "1179",
+            "transactionId": "470cd344-cf3d-4cc7-525d-b3100898ac29"
+        }
+    },
+    "updAt": "2020-03-14 15:46:39"
+}
