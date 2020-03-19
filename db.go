@@ -1,18 +1,54 @@
 package accountancy
 
 import (
-	"github.com/go-xorm/xorm"
+	"fmt"
+
+	//"github.com/go-xorm/xorm"
+	"github.com/tidwall/gjson"
 	"xorm.io/core"
+	"xorm.io/xorm"
 )
 
 // Connect -
-func Connect(driverName string, connString string) (eng *xorm.Engine, err error) {
+func Connect(driverName string, connString string, show bool) (eng *xorm.Engine, err error) {
 	eng, err = xorm.NewEngine(driverName, connString)
 	if err != nil {
 		return
 	}
-	eng.ShowSQL(true)
+	eng.ShowSQL(show)
 	eng.SetMapper(core.GonicMapper{})
+	return
+}
+
+// ConnectRequestDB -
+func ConnectRequestDB(request string) (eng *xorm.Engine, err error) {
+	srcJSON := gjson.Parse(request)
+
+	dbJSON := srcJSON.Get("db")
+	if !dbJSON.Exists() {
+		return nil, fmt.Errorf("ConnectRequestDB: object 'db' is missing")
+	}
+
+	drvJSON := dbJSON.Get("driver")
+	if !drvJSON.Exists() {
+		return nil, fmt.Errorf("ConnectRequestDB: field 'db.driver' is missing")
+	}
+	driver := drvJSON.String()
+
+	connJSON := dbJSON.Get("connection")
+	if !connJSON.Exists() {
+		return nil, fmt.Errorf("ConnectRequestDB: field 'db.connection' is missing")
+	}
+	connection := connJSON.String()
+
+	show := false
+	showJSON := dbJSON.Get("show")
+	if showJSON.Exists() {
+		show = showJSON.Bool()
+	}
+
+	eng, err = Connect(driver, connection, show)
+
 	return
 }
 

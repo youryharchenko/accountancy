@@ -3,8 +3,9 @@ package accountancy
 import (
 	"time"
 
-	"github.com/go-xorm/xorm"
+	//"github.com/go-xorm/xorm"
 	"github.com/google/uuid"
+	"xorm.io/xorm"
 )
 
 // TypeDocument -

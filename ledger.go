@@ -3,7 +3,8 @@ package accountancy
 import (
 	"time"
 
-	"github.com/go-xorm/xorm"
+	"xorm.io/xorm"
+	//"github.com/go-xorm/xorm"
 )
 
 // Ledger -

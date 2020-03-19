@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/go-xorm/xorm"
+	//"github.com/go-xorm/xorm"
 	"github.com/robertkrimen/otto"
 	"github.com/tidwall/gjson"
+	"xorm.io/xorm"
 )
 
 func relationTraitsInsert(eng *xorm.Engine, relation *Relation, traitFrom *Trait, traitTo *Trait, props map[string]interface{}, lib string) (affected int64, err error) {

@@ -1,0 +1,35 @@
+{
+    "request": {
+        "command": "import",
+        "service": "meta"
+    },
+    "db": {
+        "driver": "postgres",
+        "connection": "host=localhost port=5432 user=accountancy password=accountancy dbname=accountancy sslmode=disable",
+        "show": true
+    },
+    "body": {
+        "relations": [
+            {
+                "uuid": "592d1faf-8600-4b60-91d2-ddf2d44d11e8",
+                "name": "has_account",
+                "props": {}
+            }
+        ],
+        "traits": [
+            {
+                "uuid": "4be66287-b753-4e5a-8f0b-efa20bb14196",
+                "name": "Terminal",
+                "props": {},
+                "lib": ""
+            },
+            {
+                "uuid": "9f8830b0-c18e-43a3-b9ea-25e92d398f0d",
+                "name": "Account",
+                "props": {},
+                "lib": ""
+            }
+        ],
+        "typedocs": []
+    }
+}
