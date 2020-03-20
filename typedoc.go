@@ -3,23 +3,24 @@ package accountancy
 import (
 	"time"
 
-	//"github.com/go-xorm/xorm"
 	"github.com/google/uuid"
 	"xorm.io/xorm"
 )
 
 // TypeDocument -
 type TypeDocument struct {
-	ID          int64
-	UUID        string                 `xorm:"varchar(36) notnull unique"`
-	Name        string                 `xorm:"varchar(1024) notnull unique"`
-	DebTraitID  int64                  `xorm:"notnull index"`
-	CredTraitID int64                  `xorm:"notnull index"`
-	Props       map[string]interface{} `xorm:"jsonb"`
-	Lib         string                 `xorm:"text"`
-	Status      int                    `xorm:"notnull index"`
-	Created     time.Time              `xorm:"created"`
-	Updated     time.Time              `xorm:"updated"`
+	ID            int64
+	UUID          string                 `xorm:"varchar(36) notnull unique"`
+	Name          string                 `xorm:"varchar(1024) notnull unique"`
+	DebTraitID    int64                  `xorm:"notnull index"`
+	DebTraitName  string                 `xorm:"-" json:"deb-trait"`
+	CredTraitID   int64                  `xorm:"notnull index"`
+	CredTraitName string                 `xorm:"-" json:"cred-trait"`
+	Props         map[string]interface{} `xorm:"jsonb"`
+	Lib           string                 `xorm:"text"`
+	Status        int                    `xorm:"notnull index"`
+	Created       time.Time              `xorm:"created"`
+	Updated       time.Time              `xorm:"updated"`
 }
 
 // NewTypeDocument -

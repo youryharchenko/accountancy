@@ -12,7 +12,7 @@
         "relations": [
             {
                 "uuid": "592d1faf-8600-4b60-91d2-ddf2d44d11e8",
-                "name": "has_account",
+                "name": "has",
                 "props": {}
             }
         ],
@@ -24,12 +24,36 @@
                 "lib": ""
             },
             {
+                "uuid": "29c9af36-bcdc-462c-a85c-6887f9cd5463",
+                "name": "Counterparty",
+                "props": {},
+                "lib": ""
+            },
+            {
                 "uuid": "9f8830b0-c18e-43a3-b9ea-25e92d398f0d",
                 "name": "Account",
                 "props": {},
                 "lib": ""
             }
         ],
-        "typedocs": []
+        "relation-traits": [
+            {
+                "trait-from": "Terminal",
+                "relation": "has",
+                "trait-to": "Account",
+                "props": {},
+                "lib": ""
+            }
+        ],
+        "typedocs": [
+            {
+                "uuid": "baa8be0b-c04d-427d-b46c-5486d0ad6993",
+                "name": "CashReceipt",
+                "deb-trait": "Terminal",
+                "cred-trait": "Counterparty",
+                "props": {},
+                "lib": ""
+            }
+        ]
     }
 }

@@ -3,7 +3,6 @@ package accountancy
 import (
 	"time"
 
-	//"github.com/go-xorm/xorm"
 	"github.com/google/uuid"
 	"xorm.io/xorm"
 )
@@ -21,15 +20,18 @@ type Relation struct {
 
 // RelationTraits -
 type RelationTraits struct {
-	ID          int64
-	RelationID  int64                  `xorm:"notnull unique(relation_traits)"`
-	TraitFromID int64                  `xorm:"notnull unique(relation_traits)"`
-	TraitToID   int64                  `xorm:"notnull unique(relation_traits)"`
-	Props       map[string]interface{} `xorm:"jsonb"`
-	Lib         string                 `xorm:"text"`
-	Status      int                    `xorm:"notnull index"`
-	Created     time.Time              `xorm:"created"`
-	Updated     time.Time              `xorm:"updated"`
+	ID            int64
+	RelationID    int64                  `xorm:"notnull unique(relation_traits)"`
+	RelationName  string                 `xorm:"-" json:"relation"`
+	TraitFromID   int64                  `xorm:"notnull unique(relation_traits)"`
+	TraitFromName string                 `xorm:"-" json:"trait-from"`
+	TraitToID     int64                  `xorm:"notnull unique(relation_traits)"`
+	TraitToName   string                 `xorm:"-" json:"trait-to"`
+	Props         map[string]interface{} `xorm:"jsonb"`
+	Lib           string                 `xorm:"text"`
+	Status        int                    `xorm:"notnull index"`
+	Created       time.Time              `xorm:"created"`
+	Updated       time.Time              `xorm:"updated"`
 }
 
 // NewRelation -
