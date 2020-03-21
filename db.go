@@ -53,17 +53,7 @@ func ConnectRequestDB(request string) (eng *xorm.Engine, err error) {
 
 // SyncAll -
 func SyncAll(eng *xorm.Engine) (err error) {
-	ents := []interface{}{
-		new(Ledger),
-		new(Object),
-		new(Trait),
-		new(TraitObject),
-		new(Document),
-		new(TypeDocument),
-		new(Relation),
-		new(RelationTraits),
-		new(Service),
-	}
+	ents := entityList()
 
 	for _, ent := range ents {
 		err = Sync(eng, ent)
@@ -78,7 +68,19 @@ func SyncAll(eng *xorm.Engine) (err error) {
 // DropAll -
 func DropAll(eng *xorm.Engine) (err error) {
 
-	ents := []interface{}{
+	ents := entityList()
+	err = eng.DropTables(ents...)
+
+	return
+}
+
+// Sync -
+func Sync(eng *xorm.Engine, ent interface{}) error {
+	return eng.Sync2(ent)
+}
+
+func entityList() (ents []interface{}) {
+	ents = []interface{}{
 		new(Ledger),
 		new(Object),
 		new(Trait),
@@ -88,14 +90,7 @@ func DropAll(eng *xorm.Engine) (err error) {
 		new(Relation),
 		new(RelationTraits),
 		new(Service),
+		new(File),
 	}
-
-	err = eng.DropTables(ents...)
-
 	return
-}
-
-// Sync -
-func Sync(eng *xorm.Engine, ent interface{}) error {
-	return eng.Sync2(ent)
 }

@@ -139,9 +139,9 @@ func ImportMeta(eng *xorm.Engine, request string) (response string, err error) {
 	}
 
 	var typeDocs []gjson.Result
-	typeDocsJSON := bodyJSON.Get("relation-traits")
+	typeDocsJSON := bodyJSON.Get("typedocs")
 	if typeDocsJSON.Exists() {
-		typeDocs = relTraitsJSON.Array()
+		typeDocs = typeDocsJSON.Array()
 	}
 	for _, typeDocJSON := range typeDocs {
 		typeDoc := &TypeDocument{}

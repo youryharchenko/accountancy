@@ -1,8 +1,11 @@
 package accountancy
 
 import (
+	"bytes"
+	"encoding/base64"
 	"io/ioutil"
 	"testing"
+	"text/template"
 
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
@@ -10,6 +13,96 @@ import (
 
 var dbDriver = "postgres"
 var dbConn = "host=localhost port=5432 user=accountancy password=accountancy dbname=accountancy sslmode=disable"
+
+func TestSystemUpload(t *testing.T) {
+
+	name := "/trait/terminal.js"
+	contFile, err := ioutil.ReadFile("./test/file" + name)
+	if err != nil {
+		t.Error(err)
+	}
+
+	content := base64.StdEncoding.EncodeToString(contFile)
+
+	tmplFile, err := ioutil.ReadFile("./test/upload.tmpl")
+	if err != nil {
+		t.Error(err)
+	}
+
+	tmpl, err := template.New("upload").Parse(string(tmplFile))
+	if err != nil {
+		t.Error(err)
+	}
+
+	data := map[string]interface{}{
+		"UUID":    uuid.New().String(),
+		"Name":    name,
+		"Content": content,
+	}
+	var buff bytes.Buffer
+
+	err = tmpl.Execute(&buff, data)
+	if err != nil {
+		t.Error(err)
+	}
+
+	response, err := Run(buff.String())
+	if err != nil {
+		t.Error(err)
+	}
+
+	if response != `{"message": "ok", "status": 0}` {
+		t.Error(response)
+	}
+}
+
+func TestBatchSystemDropdbInitdb(t *testing.T) {
+
+	src, err := ioutil.ReadFile("./test/dropdb-initdb.json")
+	if err != nil {
+		t.Error(err)
+	}
+
+	response, err := RunBatch(string(src))
+	if err != nil {
+		t.Error(err)
+	}
+	if response != `{"message": "ok", "status": 0}` {
+		t.Error(response)
+	}
+}
+
+func TestSystemInitdb(t *testing.T) {
+
+	src, err := ioutil.ReadFile("./test/initdb.json")
+	if err != nil {
+		t.Error(err)
+	}
+
+	response, err := Run(string(src))
+	if err != nil {
+		t.Error(err)
+	}
+	if response != `{"message": "ok", "status": 0}` {
+		t.Error(response)
+	}
+}
+
+func TestSystemDropdb(t *testing.T) {
+
+	src, err := ioutil.ReadFile("./test/dropdb.json")
+	if err != nil {
+		t.Error(err)
+	}
+
+	response, err := Run(string(src))
+	if err != nil {
+		t.Error(err)
+	}
+	if response != `{"message": "ok", "status": 0}` {
+		t.Error(response)
+	}
+}
 
 func TestImportMeta(t *testing.T) {
 
@@ -22,8 +115,9 @@ func TestImportMeta(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-
-	t.Error(response)
+	if response != `{"message": "ok", "status": 0}` {
+		t.Error(response)
+	}
 }
 
 func TestSync(t *testing.T) {
@@ -57,5 +151,5 @@ func TestDrop1(t *testing.T) {
 }
 
 func TestUUID(t *testing.T) {
-	t.Error(uuid.New().String())
+	//t.Error(uuid.New().String())
 }
