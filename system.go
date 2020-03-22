@@ -36,7 +36,29 @@ func RunSystem(service string, request string) (response string, err error) {
 			response = fmt.Sprintf(tmplResponse, "ok", 0)
 		}
 	case "upload":
-		response, err = SystemUpload(eng, request)
+		sess := eng.NewSession()
+		defer sess.Close()
+
+		err = sess.Begin()
+		if err != nil {
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			return
+		}
+
+		response, err = SystemUpload(sess, request)
+		if err != nil {
+			err = sess.Rollback()
+			if err != nil {
+				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			}
+			return
+		}
+
+		err = sess.Commit()
+		if err != nil {
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+		}
+
 	default:
 		err = fmt.Errorf("RunSystem: unknown service '%s'", service)
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
@@ -46,7 +68,7 @@ func RunSystem(service string, request string) (response string, err error) {
 }
 
 // SystemUpload -
-func SystemUpload(eng *xorm.Engine, request string) (response string, err error) {
+func SystemUpload(sess *xorm.Session, request string) (response string, err error) {
 
 	srcJSON := gjson.Parse(request)
 
@@ -76,20 +98,22 @@ func SystemUpload(eng *xorm.Engine, request string) (response string, err error)
 		Name: name,
 	}
 
-	ok, err := find.Get(eng)
+	ok, err := find.SessionGet(sess)
 	if err != nil {
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 		return
 	}
 
+	mess := ""
 	if ok {
 		find.Content = content
 		find.Props = props
-		_, err = find.Update(eng)
+		_, err = find.SessionUpdate(sess)
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
 		}
+		mess = "updated"
 	} else {
 		file := &File{
 			UUID:    uuid,
@@ -97,15 +121,15 @@ func SystemUpload(eng *xorm.Engine, request string) (response string, err error)
 			Props:   props,
 			Content: content,
 		}
-
-		_, err = file.Insert(eng)
+		_, err = file.SessionInsert(sess)
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
 		}
+		mess = "inserted"
 	}
 
-	response = fmt.Sprintf(tmplResponse, "ok", 0)
+	response = fmt.Sprintf(tmplResponse, mess, 0)
 
 	return
 }

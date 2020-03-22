@@ -59,6 +59,24 @@ func (trait *Trait) Update(eng *xorm.Engine) (affected int64, err error) {
 	return
 }
 
+// SessionInsert -
+func (trait *Trait) SessionInsert(sess *xorm.Session) (affected int64, err error) {
+	affected, err = sess.Insert(trait)
+	return
+}
+
+// SessionGet -
+func (trait *Trait) SessionGet(sess *xorm.Session) (has bool, err error) {
+	has, err = sess.Get(trait)
+	return
+}
+
+// SessionUpdate -
+func (trait *Trait) SessionUpdate(sess *xorm.Session) (affected int64, err error) {
+	affected, err = sess.ID(trait.ID).Update(trait)
+	return
+}
+
 // AddRelationFrom -
 func (trait *Trait) AddRelationFrom(eng *xorm.Engine, relation *Relation, traitFrom *Trait, props map[string]interface{}, lib string) (affected int64, err error) {
 	affected, err = relationTraitsInsert(eng, relation, traitFrom, trait, props, lib)

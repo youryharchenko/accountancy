@@ -21,20 +21,27 @@
                 "uuid": "4be66287-b753-4e5a-8f0b-efa20bb14196",
                 "name": "Terminal",
                 "props": {},
-                "lib": ""
+                "lib": "/trait/terminal.js"
             },
             {
                 "uuid": "29c9af36-bcdc-462c-a85c-6887f9cd5463",
                 "name": "Counterparty",
                 "props": {},
-                "lib": ""
+                "lib": "/trait/counterparty.js"
             },
             {
                 "uuid": "9f8830b0-c18e-43a3-b9ea-25e92d398f0d",
                 "name": "Account",
                 "props": {},
-                "lib": ""
+                "lib": "/trait/account.js"
+            },
+            {
+                "uuid": "ca23db85-8382-4a9c-8218-e84f35ea6a1c",
+                "name": "Transaction",
+                "props": {},
+                "lib": "/trait/transaction.js"
             }
+
         ],
         "relation-traits": [
             {

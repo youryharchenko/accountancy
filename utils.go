@@ -22,6 +22,18 @@ func relationTraitsInsert(eng *xorm.Engine, relation *Relation, traitFrom *Trait
 	return
 }
 
+func sessionRelationTraitsInsert(sess *xorm.Session, relation *Relation, traitFrom *Trait, traitTo *Trait, props map[string]interface{}, lib string) (affected int64, err error) {
+	relationTraits := &RelationTraits{
+		RelationID:  relation.ID,
+		TraitFromID: traitFrom.ID,
+		TraitToID:   traitTo.ID,
+		Props:       props,
+		Lib:         lib,
+	}
+	affected, err = sess.Insert(relationTraits)
+	return
+}
+
 func traitObjectInsert(eng *xorm.Engine, trait *Trait, object *Object) (affected int64, err error) {
 	traitObject := &TraitObject{
 		TraitID:  trait.ID,

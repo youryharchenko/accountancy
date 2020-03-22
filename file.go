@@ -47,3 +47,21 @@ func (file *File) Update(eng *xorm.Engine) (affected int64, err error) {
 	affected, err = eng.ID(file.ID).Update(file)
 	return
 }
+
+// SessionInsert -
+func (file *File) SessionInsert(sess *xorm.Session) (affected int64, err error) {
+	affected, err = sess.Insert(file)
+	return
+}
+
+// SessionGet -
+func (file *File) SessionGet(sess *xorm.Session) (has bool, err error) {
+	has, err = sess.Get(file)
+	return
+}
+
+// SessionUpdate -
+func (file *File) SessionUpdate(sess *xorm.Session) (affected int64, err error) {
+	affected, err = sess.ID(file.ID).Update(file)
+	return
+}

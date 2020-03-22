@@ -53,3 +53,21 @@ func (typedoc *TypeDocument) Update(eng *xorm.Engine) (affected int64, err error
 	affected, err = eng.ID(typedoc.ID).Update(typedoc)
 	return
 }
+
+// SessionInsert -
+func (typedoc *TypeDocument) SessionInsert(sess *xorm.Session) (affected int64, err error) {
+	affected, err = sess.Insert(typedoc)
+	return
+}
+
+// SessionGet -
+func (typedoc *TypeDocument) SessionGet(sess *xorm.Session) (has bool, err error) {
+	has, err = sess.Get(typedoc)
+	return
+}
+
+// SessionUpdate -
+func (typedoc *TypeDocument) SessionUpdate(sess *xorm.Session) (affected int64, err error) {
+	affected, err = sess.ID(typedoc.ID).Update(typedoc)
+	return
+}

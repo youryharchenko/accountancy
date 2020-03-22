@@ -3,7 +3,6 @@ module github.com/youryharchenko/accountancy
 go 1.13
 
 require (
-	github.com/beevik/guid v0.0.0-20170504223318-d0ea8faecee0 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/lib/pq v1.3.0

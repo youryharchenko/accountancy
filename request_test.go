@@ -16,13 +16,12 @@ var dbConn = "host=localhost port=5432 user=accountancy password=accountancy dbn
 
 func TestSystemUpload(t *testing.T) {
 
-	name := "/trait/terminal.js"
-	contFile, err := ioutil.ReadFile("./test/file" + name)
-	if err != nil {
-		t.Error(err)
+	names := []string{
+		"/trait/terminal.js",
+		"/trait/counterparty.js",
+		"/trait/account.js",
+		"/trait/transaction.js",
 	}
-
-	content := base64.StdEncoding.EncodeToString(contFile)
 
 	tmplFile, err := ioutil.ReadFile("./test/upload.tmpl")
 	if err != nil {
@@ -34,25 +33,36 @@ func TestSystemUpload(t *testing.T) {
 		t.Error(err)
 	}
 
-	data := map[string]interface{}{
-		"UUID":    uuid.New().String(),
-		"Name":    name,
-		"Content": content,
-	}
-	var buff bytes.Buffer
+	for _, name := range names {
 
-	err = tmpl.Execute(&buff, data)
-	if err != nil {
-		t.Error(err)
-	}
+		contFile, err := ioutil.ReadFile("./test/file" + name)
+		if err != nil {
+			t.Error(err)
+			continue
+		}
 
-	response, err := Run(buff.String())
-	if err != nil {
-		t.Error(err)
-	}
+		content := base64.StdEncoding.EncodeToString(contFile)
 
-	if response != `{"message": "ok", "status": 0}` {
-		t.Error(response)
+		data := map[string]interface{}{
+			"UUID":    uuid.New().String(),
+			"Name":    name,
+			"Content": content,
+		}
+		var buff bytes.Buffer
+
+		err = tmpl.Execute(&buff, data)
+		if err != nil {
+			t.Error(err)
+		}
+
+		response, err := Run(buff.String())
+		if err != nil {
+			t.Error(err)
+		}
+
+		if response != `{"message": "ok", "status": 0}` {
+			t.Error(response)
+		}
 	}
 }
 
@@ -104,7 +114,7 @@ func TestSystemDropdb(t *testing.T) {
 	}
 }
 
-func TestImportMeta(t *testing.T) {
+func TestImportMeta1(t *testing.T) {
 
 	src, err := ioutil.ReadFile("./test/meta.json")
 	if err != nil {
@@ -151,5 +161,5 @@ func TestDrop1(t *testing.T) {
 }
 
 func TestUUID(t *testing.T) {
-	//t.Error(uuid.New().String())
+	t.Error(uuid.New().String())
 }

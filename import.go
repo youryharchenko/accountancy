@@ -22,7 +22,29 @@ func RunImport(service string, request string) (response string, err error) {
 
 	switch service {
 	case "meta":
-		response, err = ImportMeta(eng, request)
+		sess := eng.NewSession()
+		defer sess.Close()
+
+		err = sess.Begin()
+		if err != nil {
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			return
+		}
+
+		response, err = ImportMeta(sess, request)
+		if err != nil {
+			err = sess.Rollback()
+			if err != nil {
+				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			}
+			return
+		}
+
+		err = sess.Commit()
+		if err != nil {
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+		}
+
 	default:
 		err = fmt.Errorf("RunImport: unknown service '%s'", service)
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
@@ -32,7 +54,7 @@ func RunImport(service string, request string) (response string, err error) {
 }
 
 // ImportMeta -
-func ImportMeta(eng *xorm.Engine, request string) (response string, err error) {
+func ImportMeta(sess *xorm.Session, request string) (response string, err error) {
 
 	relDict := map[string]*Relation{}
 	traitDict := map[string]*Trait{}
@@ -59,7 +81,7 @@ func ImportMeta(eng *xorm.Engine, request string) (response string, err error) {
 			return
 		}
 
-		_, err = relation.Insert(eng)
+		_, err = relation.SessionInsert(sess)
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
@@ -84,7 +106,7 @@ func ImportMeta(eng *xorm.Engine, request string) (response string, err error) {
 			return
 		}
 
-		_, err = trait.Insert(eng)
+		_, err = trait.SessionInsert(sess)
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
@@ -118,19 +140,19 @@ func ImportMeta(eng *xorm.Engine, request string) (response string, err error) {
 
 		traitFrom, ok := traitDict[relationTraits.TraitFromName]
 		if !ok {
-			err = fmt.Errorf("ImportMeta: trait '%s' is undefined", relationTraits.TraitFromName)
+			err = fmt.Errorf("ImportMeta: trait 'from' '%s' is undefined", relationTraits.TraitFromName)
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
 		}
 
 		traitTo, ok := traitDict[relationTraits.TraitToName]
 		if !ok {
-			err = fmt.Errorf("ImportMeta: trait '%s' is undefined", relationTraits.TraitToName)
+			err = fmt.Errorf("ImportMeta: trait 'to' '%s' is undefined", relationTraits.TraitToName)
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
 		}
 
-		_, err = relation.AddRelationTraits(eng, traitFrom, traitTo, relationTraits.Props, relationTraits.Lib)
+		_, err = relation.SessionAddRelationTraits(sess, traitFrom, traitTo, relationTraits.Props, relationTraits.Lib)
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
@@ -153,14 +175,14 @@ func ImportMeta(eng *xorm.Engine, request string) (response string, err error) {
 
 		debTrait, ok := traitDict[typeDoc.DebTraitName]
 		if !ok {
-			err = fmt.Errorf("ImportMeta: trait '%s' is undefined", typeDoc.DebTraitName)
+			err = fmt.Errorf("ImportMeta: trait 'deb' '%s' is undefined", typeDoc.DebTraitName)
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
 		}
 
 		credTrait, ok := traitDict[typeDoc.CredTraitName]
 		if !ok {
-			err = fmt.Errorf("ImportMeta: trait '%s' is undefined", typeDoc.CredTraitName)
+			err = fmt.Errorf("ImportMeta: trait 'cred' '%s' is undefined", typeDoc.CredTraitName)
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
 		}
@@ -168,7 +190,7 @@ func ImportMeta(eng *xorm.Engine, request string) (response string, err error) {
 		typeDoc.DebTraitID = debTrait.ID
 		typeDoc.CredTraitID = credTrait.ID
 
-		_, err = typeDoc.Insert(eng)
+		_, err = typeDoc.SessionInsert(sess)
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
