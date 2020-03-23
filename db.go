@@ -8,6 +8,14 @@ import (
 	"xorm.io/xorm"
 )
 
+// DB -
+type DB interface {
+	Insert(beans ...interface{}) (affected int64, err error)
+	Get(bean interface{}) (has bool, err error)
+	Update(bean interface{}, condiBean ...interface{}) (affected int64, err error)
+	ID(id interface{}) *xorm.Session
+}
+
 // Connect -
 func Connect(driverName string, connString string, show bool) (eng *xorm.Engine, err error) {
 	eng, err = xorm.NewEngine(driverName, connString)
@@ -89,6 +97,7 @@ func entityList() (ents []interface{}) {
 		new(TypeDocument),
 		new(Relation),
 		new(RelationTraits),
+		new(LinkObjects),
 		new(Service),
 		new(File),
 	}

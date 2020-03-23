@@ -48,6 +48,6 @@ func (object *Object) Update(eng *xorm.Engine) (affected int64, err error) {
 
 // AddTrait -
 func (object *Object) AddTrait(eng *xorm.Engine, trait *Trait) (affected int64, err error) {
-	affected, err = traitObjectInsert(eng, trait, object)
+	affected, _, err = traitObjectInsertOrUpdate(eng, trait, object)
 	return
 }

@@ -60,9 +60,8 @@ func TestSystemUpload(t *testing.T) {
 			t.Error(err)
 		}
 
-		if response != `{"message": "ok", "status": 0}` {
-			t.Error(response)
-		}
+		t.Error(response)
+
 	}
 }
 
@@ -114,7 +113,7 @@ func TestSystemDropdb(t *testing.T) {
 	}
 }
 
-func TestImportMeta1(t *testing.T) {
+func TestImportMeta(t *testing.T) {
 
 	src, err := ioutil.ReadFile("./test/meta.json")
 	if err != nil {
@@ -125,9 +124,9 @@ func TestImportMeta1(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if response != `{"message": "ok", "status": 0}` {
-		t.Error(response)
-	}
+
+	t.Error(response)
+
 }
 
 func TestSync(t *testing.T) {

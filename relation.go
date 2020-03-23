@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"xorm.io/xorm"
 )
 
 // Relation -
@@ -34,6 +33,20 @@ type RelationTraits struct {
 	Updated       time.Time              `xorm:"updated"`
 }
 
+// LinkObjects -
+type LinkObjects struct {
+	ID               int64
+	RelationTraitsID int64                  `xorm:"notnull unique(relation_traits_link_objects)"`
+	RelationName     string                 `xorm:"-" json:"relation"`
+	ObjectID         int64                  `xorm:"notnull unique(relation_traits_link_objects)"`
+	ObjectName       string                 `xorm:"-" json:"object-name"`
+	ObjectUUID       string                 `xorm:"-" json:"object-uuid"`
+	Props            map[string]interface{} `xorm:"jsonb"`
+	Status           int                    `xorm:"notnull index"`
+	Created          time.Time              `xorm:"created"`
+	Updated          time.Time              `xorm:"updated"`
+}
+
 // NewRelation -
 func NewRelation(name string, props map[string]interface{}, lib string) (relation *Relation, err error) {
 	relation = &Relation{
@@ -45,49 +58,51 @@ func NewRelation(name string, props map[string]interface{}, lib string) (relatio
 }
 
 // Insert -
-func (relation *Relation) Insert(eng *xorm.Engine) (affected int64, err error) {
-	affected, err = eng.Insert(relation)
+func (relation *Relation) Insert(db DB) (affected int64, err error) {
+	affected, err = db.Insert(relation)
 	return
 }
 
 // Get -
-func (relation *Relation) Get(eng *xorm.Engine) (has bool, err error) {
-	has, err = eng.Get(relation)
+func (relation *Relation) Get(db DB) (has bool, err error) {
+	has, err = db.Get(relation)
 	return
 }
 
 // Update -
-func (relation *Relation) Update(eng *xorm.Engine) (affected int64, err error) {
-	affected, err = eng.ID(relation.ID).Update(relation)
+func (relation *Relation) Update(db DB) (affected int64, err error) {
+	affected, err = db.ID(relation.ID).Update(relation)
 	return
 }
 
-// SessionInsert -
-func (relation *Relation) SessionInsert(sess *xorm.Session) (affected int64, err error) {
-	affected, err = sess.Insert(relation)
-	return
-}
+// InsertOrUpdate -
+func (relation *Relation) InsertOrUpdate(db DB, find *Relation) (affected int64, inserted bool, err error) {
 
-// SessionGet -
-func (relation *Relation) SessionGet(sess *xorm.Session) (has bool, err error) {
-	has, err = sess.Get(relation)
-	return
-}
+	ok, err := find.Get(db)
+	if err != nil {
+		return
+	}
 
-// SessionUpdate -
-func (relation *Relation) SessionUpdate(sess *xorm.Session) (affected int64, err error) {
-	affected, err = sess.ID(relation.ID).Update(relation)
+	if ok {
+		relation.ID = find.ID
+		_, err = relation.Update(db)
+		if err != nil {
+			return
+		}
+		inserted = false
+	} else {
+		_, err = relation.Insert(db)
+		if err != nil {
+			return
+		}
+		inserted = true
+	}
+
 	return
 }
 
 // AddRelationTraits -
-func (relation *Relation) AddRelationTraits(eng *xorm.Engine, traitFrom *Trait, traitTo *Trait, props map[string]interface{}, lib string) (affected int64, err error) {
-	affected, err = relationTraitsInsert(eng, relation, traitFrom, traitTo, props, lib)
-	return
-}
-
-// SessionAddRelationTraits -
-func (relation *Relation) SessionAddRelationTraits(sess *xorm.Session, traitFrom *Trait, traitTo *Trait, props map[string]interface{}, lib string) (affected int64, err error) {
-	affected, err = sessionRelationTraitsInsert(sess, relation, traitFrom, traitTo, props, lib)
+func (relation *Relation) AddRelationTraits(db DB, traitFrom *Trait, traitTo *Trait, props map[string]interface{}, lib string) (affected int64, inserted bool, err error) {
+	affected, inserted, err = relationTraitsInsertOrUpdate(db, relation, traitFrom, traitTo, props, lib)
 	return
 }

@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"xorm.io/xorm"
 )
 
 // TypeDocument -
@@ -37,23 +36,50 @@ func NewTypeDocument(name string, debTraitID int64, credTraitID int64, props map
 }
 
 // Insert -
-func (typedoc *TypeDocument) Insert(eng *xorm.Engine) (affected int64, err error) {
-	affected, err = eng.Insert(typedoc)
+func (typedoc *TypeDocument) Insert(db DB) (affected int64, err error) {
+	affected, err = db.Insert(typedoc)
 	return
 }
 
 // Get -
-func (typedoc *TypeDocument) Get(eng *xorm.Engine) (has bool, err error) {
-	has, err = eng.Get(typedoc)
+func (typedoc *TypeDocument) Get(db DB) (has bool, err error) {
+	has, err = db.Get(typedoc)
 	return
 }
 
 // Update -
-func (typedoc *TypeDocument) Update(eng *xorm.Engine) (affected int64, err error) {
-	affected, err = eng.ID(typedoc.ID).Update(typedoc)
+func (typedoc *TypeDocument) Update(db DB) (affected int64, err error) {
+	affected, err = db.ID(typedoc.ID).Update(typedoc)
 	return
 }
 
+// InsertOrUpdate -
+func (typedoc *TypeDocument) InsertOrUpdate(db DB, find *TypeDocument) (affected int64, inserted bool, err error) {
+
+	ok, err := find.Get(db)
+	if err != nil {
+		return
+	}
+
+	if ok {
+		typedoc.ID = find.ID
+		_, err = typedoc.Update(db)
+		if err != nil {
+			return
+		}
+		inserted = false
+	} else {
+		_, err = typedoc.Insert(db)
+		if err != nil {
+			return
+		}
+		inserted = true
+	}
+
+	return
+}
+
+/*
 // SessionInsert -
 func (typedoc *TypeDocument) SessionInsert(sess *xorm.Session) (affected int64, err error) {
 	affected, err = sess.Insert(typedoc)
@@ -71,3 +97,4 @@ func (typedoc *TypeDocument) SessionUpdate(sess *xorm.Session) (affected int64, 
 	affected, err = sess.ID(typedoc.ID).Update(typedoc)
 	return
 }
+*/

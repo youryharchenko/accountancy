@@ -10,7 +10,7 @@ import (
 	"xorm.io/xorm"
 )
 
-func relationTraitsInsert(eng *xorm.Engine, relation *Relation, traitFrom *Trait, traitTo *Trait, props map[string]interface{}, lib string) (affected int64, err error) {
+func relationTraitsInsert(db DB, relation *Relation, traitFrom *Trait, traitTo *Trait, props map[string]interface{}, lib string) (affected int64, err error) {
 	relationTraits := &RelationTraits{
 		RelationID:  relation.ID,
 		TraitFromID: traitFrom.ID,
@@ -18,11 +18,11 @@ func relationTraitsInsert(eng *xorm.Engine, relation *Relation, traitFrom *Trait
 		Props:       props,
 		Lib:         lib,
 	}
-	affected, err = eng.Insert(relationTraits)
+	affected, err = db.Insert(relationTraits)
 	return
 }
 
-func sessionRelationTraitsInsert(sess *xorm.Session, relation *Relation, traitFrom *Trait, traitTo *Trait, props map[string]interface{}, lib string) (affected int64, err error) {
+func relationTraitsInsertOrUpdate(db DB, relation *Relation, traitFrom *Trait, traitTo *Trait, props map[string]interface{}, lib string) (affected int64, inserted bool, err error) {
 	relationTraits := &RelationTraits{
 		RelationID:  relation.ID,
 		TraitFromID: traitFrom.ID,
@@ -30,34 +30,85 @@ func sessionRelationTraitsInsert(sess *xorm.Session, relation *Relation, traitFr
 		Props:       props,
 		Lib:         lib,
 	}
-	affected, err = sess.Insert(relationTraits)
+
+	find := &RelationTraits{
+		RelationID:  relation.ID,
+		TraitFromID: traitFrom.ID,
+		TraitToID:   traitTo.ID,
+	}
+
+	ok, err := db.Get(find)
+	if err != nil {
+		return
+	}
+
+	if ok {
+		relationTraits.ID = find.ID
+		_, err = db.ID(find.ID).Update(relationTraits)
+		if err != nil {
+			return
+		}
+		inserted = false
+	} else {
+		_, err = db.Insert(relationTraits)
+		if err != nil {
+			return
+		}
+		inserted = true
+	}
+
 	return
 }
 
-func traitObjectInsert(eng *xorm.Engine, trait *Trait, object *Object) (affected int64, err error) {
+func traitObjectInsertOrUpdate(db DB, trait *Trait, object *Object) (affected int64, inserted bool, err error) {
 	traitObject := &TraitObject{
 		TraitID:  trait.ID,
 		ObjectID: object.ID,
 		Props:    trait.Props,
 	}
-	affected, err = eng.Insert(traitObject)
+
+	find := &TraitObject{
+		TraitID:  trait.ID,
+		ObjectID: object.ID,
+	}
+
+	ok, err := db.Get(find)
+	if err != nil {
+		return
+	}
+
+	if ok {
+		traitObject.ID = find.ID
+		_, err = db.ID(find.ID).Update(traitObject)
+		if err != nil {
+			return
+		}
+		inserted = false
+	} else {
+		_, err = db.Insert(traitObject)
+		if err != nil {
+			return
+		}
+		inserted = true
+	}
+
 	return
 }
 
-func traitObjectUpdate(eng *xorm.Engine, trait *Trait, object *Object, props map[string]interface{}) (affected int64, err error) {
+func traitObjectUpdate(db DB, trait *Trait, object *Object, props map[string]interface{}) (affected int64, err error) {
 	traitObject := &TraitObject{
 		TraitID:  trait.ID,
 		ObjectID: object.ID,
 	}
 
-	_, err = eng.Get(traitObject)
+	_, err = db.Get(traitObject)
 	if err != nil {
 		return
 	}
 
 	traitObject.Props = props
 
-	affected, err = eng.ID(traitObject.ID).Update(traitObject)
+	affected, err = db.ID(traitObject.ID).Update(traitObject)
 	return
 }
 

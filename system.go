@@ -94,41 +94,19 @@ func SystemUpload(sess *xorm.Session, request string) (response string, err erro
 		return
 	}
 
-	find := &File{
-		Name: name,
+	file := &File{
+		UUID:    uuid,
+		Name:    name,
+		Props:   props,
+		Content: content,
 	}
 
-	ok, err := find.SessionGet(sess)
-	if err != nil {
-		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-		return
-	}
+	_, inserted, err := file.InsertOrUpdate(sess, &File{Name: name})
 
-	mess := ""
-	if ok {
-		find.Content = content
-		find.Props = props
-		_, err = find.SessionUpdate(sess)
-		if err != nil {
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			return
-		}
-		mess = "updated"
-	} else {
-		file := &File{
-			UUID:    uuid,
-			Name:    name,
-			Props:   props,
-			Content: content,
-		}
-		_, err = file.SessionInsert(sess)
-		if err != nil {
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			return
-		}
+	mess := "updated"
+	if inserted {
 		mess = "inserted"
 	}
-
 	response = fmt.Sprintf(tmplResponse, mess, 0)
 
 	return

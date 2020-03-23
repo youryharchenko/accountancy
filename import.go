@@ -81,7 +81,7 @@ func ImportMeta(sess *xorm.Session, request string) (response string, err error)
 			return
 		}
 
-		_, err = relation.SessionInsert(sess)
+		_, _, err = relation.InsertOrUpdate(sess, &Relation{Name: relation.Name})
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
@@ -106,7 +106,7 @@ func ImportMeta(sess *xorm.Session, request string) (response string, err error)
 			return
 		}
 
-		_, err = trait.SessionInsert(sess)
+		_, _, err = trait.InsertOrUpdate(sess, &Trait{Name: trait.Name})
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
@@ -152,7 +152,7 @@ func ImportMeta(sess *xorm.Session, request string) (response string, err error)
 			return
 		}
 
-		_, err = relation.SessionAddRelationTraits(sess, traitFrom, traitTo, relationTraits.Props, relationTraits.Lib)
+		_, _, err = relation.AddRelationTraits(sess, traitFrom, traitTo, relationTraits.Props, relationTraits.Lib)
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
@@ -190,7 +190,7 @@ func ImportMeta(sess *xorm.Session, request string) (response string, err error)
 		typeDoc.DebTraitID = debTrait.ID
 		typeDoc.CredTraitID = credTrait.ID
 
-		_, err = typeDoc.SessionInsert(sess)
+		_, _, err = typeDoc.InsertOrUpdate(sess, &TypeDocument{Name: typeDoc.Name})
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return

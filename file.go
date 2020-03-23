@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"xorm.io/xorm"
 )
 
 // File -
@@ -31,37 +30,45 @@ func NewFile(name string, props map[string]interface{}, content []byte) (file *F
 }
 
 // Insert -
-func (file *File) Insert(eng *xorm.Engine) (affected int64, err error) {
-	affected, err = eng.Insert(file)
+func (file *File) Insert(db DB) (affected int64, err error) {
+	affected, err = db.Insert(file)
 	return
 }
 
 // Get -
-func (file *File) Get(eng *xorm.Engine) (has bool, err error) {
-	has, err = eng.Get(file)
+func (file *File) Get(db DB) (has bool, err error) {
+	has, err = db.Get(file)
 	return
 }
 
 // Update -
-func (file *File) Update(eng *xorm.Engine) (affected int64, err error) {
-	affected, err = eng.ID(file.ID).Update(file)
+func (file *File) Update(db DB) (affected int64, err error) {
+	affected, err = db.ID(file.ID).Update(file)
 	return
 }
 
-// SessionInsert -
-func (file *File) SessionInsert(sess *xorm.Session) (affected int64, err error) {
-	affected, err = sess.Insert(file)
-	return
-}
+// InsertOrUpdate -
+func (file *File) InsertOrUpdate(db DB, find *File) (affected int64, inserted bool, err error) {
 
-// SessionGet -
-func (file *File) SessionGet(sess *xorm.Session) (has bool, err error) {
-	has, err = sess.Get(file)
-	return
-}
+	ok, err := find.Get(db)
+	if err != nil {
+		return
+	}
 
-// SessionUpdate -
-func (file *File) SessionUpdate(sess *xorm.Session) (affected int64, err error) {
-	affected, err = sess.ID(file.ID).Update(file)
+	if ok {
+		file.ID = find.ID
+		_, err = file.Update(db)
+		if err != nil {
+			return
+		}
+		inserted = false
+	} else {
+		_, err = file.Insert(db)
+		if err != nil {
+			return
+		}
+		inserted = true
+	}
+
 	return
 }
