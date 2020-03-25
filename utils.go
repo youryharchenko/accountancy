@@ -77,6 +77,41 @@ func traitObjectInsertOrUpdate(db DB, trait *Trait, object *Object) (affected in
 		return
 	}
 
+	jsFind := &File{Name: trait.Lib}
+	_, err = jsFind.Get(db)
+	if err != nil {
+		return
+	}
+
+	js := string(jsFind.Content)
+
+	vm := otto.New()
+	_, err = vm.Run(js)
+	if err != nil {
+		return
+	}
+
+	res, err := vm.Call("constructor", nil, trait.Props, object.Props)
+	if err != nil {
+		return
+	}
+
+	props, err := res.Export()
+	if err != nil {
+		return
+	}
+
+	var isObj bool
+	traitObject.Props, isObj = props.(map[string]interface{})
+	if !isObj {
+		err = fmt.Errorf("traitObjectInsertOrUpdate: result is not object")
+		return
+	}
+
+	if len(traitObject.Props) == 0 {
+		return
+	}
+
 	if ok {
 		traitObject.ID = find.ID
 		_, err = db.ID(find.ID).Update(traitObject)

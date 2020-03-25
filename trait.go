@@ -97,8 +97,8 @@ func (trait *Trait) AddRelationTo(db DB, relation *Relation, traitTo *Trait, pro
 }
 
 // AddObject -
-func (trait *Trait) AddObject(db DB, object *Object) (affected int64, err error) {
-	affected, _, err = traitObjectInsertOrUpdate(db, trait, object)
+func (trait *Trait) AddObject(db DB, object *Object) (affected int64, inserted bool, err error) {
+	affected, inserted, err = traitObjectInsertOrUpdate(db, trait, object)
 	return
 }
 

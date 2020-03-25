@@ -29,20 +29,46 @@ func NewObject(name string, props map[string]interface{}) (object *Object, err e
 }
 
 // Insert -
-func (object *Object) Insert(eng *xorm.Engine) (affected int64, err error) {
-	affected, err = eng.Insert(object)
+func (object *Object) Insert(db DB) (affected int64, err error) {
+	affected, err = db.Insert(object)
 	return
 }
 
 // Get -
-func (object *Object) Get(eng *xorm.Engine) (has bool, err error) {
-	has, err = eng.Get(object)
+func (object *Object) Get(db DB) (has bool, err error) {
+	has, err = db.Get(object)
 	return
 }
 
 // Update -
-func (object *Object) Update(eng *xorm.Engine) (affected int64, err error) {
-	affected, err = eng.ID(object.ID).Update(object)
+func (object *Object) Update(db DB) (affected int64, err error) {
+	affected, err = db.ID(object.ID).Update(object)
+	return
+}
+
+// InsertOrUpdate -
+func (object *Object) InsertOrUpdate(db DB, find *Object) (affected int64, inserted bool, err error) {
+
+	ok, err := find.Get(db)
+	if err != nil {
+		return
+	}
+
+	if ok {
+		object.ID = find.ID
+		_, err = object.Update(db)
+		if err != nil {
+			return
+		}
+		inserted = false
+	} else {
+		_, err = object.Insert(db)
+		if err != nil {
+			return
+		}
+		inserted = true
+	}
+
 	return
 }
 

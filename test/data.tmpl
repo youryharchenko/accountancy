@@ -1,0 +1,16 @@
+{
+    "request": {
+        "command": "import",
+        "service": "data"
+    },
+    "db": {
+        "driver": "postgres",
+        "connection": "host=localhost port=5432 user=accountancy password=accountancy dbname=accountancy sslmode=disable",
+        "show": true
+    },
+    "body": {
+        "name": "{{.Name}}",
+        "props": {{.Props}},
+        "trait": "{{.TraitName}}"
+    }
+}

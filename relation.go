@@ -33,6 +33,13 @@ type RelationTraits struct {
 	Updated       time.Time              `xorm:"updated"`
 }
 
+// RelationTraitsKey -
+type RelationTraitsKey struct {
+	RelationName  string
+	TraitFromName string
+	TraitToName   string
+}
+
 // LinkObjects -
 type LinkObjects struct {
 	ID               int64
