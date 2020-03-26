@@ -9,8 +9,15 @@
         "show": true
     },
     "body": {
-        "name": "{{.Name}}",
-        "props": {{.Props}},
-        "trait": "{{.TraitName}}"
+        "objects": [
+            {{range .}}{{.Delemiter}}
+            {
+                "name": "{{.Name}}",
+                "props": {{.Props}},
+                "traits": [
+                    "{{.TraitName}}"
+                ]
+            }{{end}}
+        ]
     }
 }

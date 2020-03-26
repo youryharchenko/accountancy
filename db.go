@@ -98,7 +98,14 @@ func (meta *Meta) LoadTraits(db DB) (err error) {
 	if err != nil {
 		return
 	}
+
 	for _, e := range list {
+		jsFind := &File{Name: e.Lib}
+		_, err = jsFind.Get(db)
+		if err != nil {
+			return
+		}
+		e.LibContent = string(jsFind.Content)
 		meta.AddTrait(&e)
 	}
 	return

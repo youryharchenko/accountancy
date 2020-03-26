@@ -9,6 +9,8 @@ import (
 
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
+	"github.com/tidwall/buntdb"
+	"github.com/tidwall/gjson"
 )
 
 var dbDriver = "postgres"
@@ -121,6 +123,91 @@ func TestImportMeta(t *testing.T) {
 	}
 
 	response, err := Run(string(src))
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Error(response)
+
+}
+
+func TestImportData(t *testing.T) {
+
+	tmplFile, err := ioutil.ReadFile("./test/data.tmpl")
+	if err != nil {
+		t.Error(err)
+	}
+
+	tmpl, err := template.New("data").Parse(string(tmplFile))
+	if err != nil {
+		t.Error(err)
+	}
+
+	traitName := "Transaction"
+
+	db, err := buntdb.Open("../../../../../Niko/db/context-prod.db")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	defer db.Close()
+
+	eng, err := Connect(dbDriver, dbConn, true)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	defer eng.Close()
+
+	i := 0
+
+	data := []map[string]interface{}{}
+	delemiter := ""
+
+	err = db.View(func(tx *buntdb.Tx) (err error) {
+		tx.Ascend("", func(key, value string) bool {
+			i++
+			//log.Println(i)
+
+			if !gjson.Valid(value) {
+				t.Errorf("%d - json is not valid, key: %s, value: %s", i, key, value)
+				return true
+			}
+
+			dataJSON := gjson.Parse(value)
+			name := dataJSON.Get("check.request.transactionId").String()
+			props := dataJSON.Raw
+
+			obj := map[string]interface{}{
+				"Name":      name,
+				"Props":     props,
+				"TraitName": traitName,
+				"Delemiter": delemiter,
+			}
+
+			data = append(data, obj)
+			delemiter = ","
+
+			return true
+		})
+		return
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Error(i)
+
+	var buff bytes.Buffer
+
+	err = tmpl.Execute(&buff, data)
+	if err != nil {
+		t.Error(err)
+	}
+
+	//t.Error(buff.String())
+
+	response, err := Run(buff.String())
 	if err != nil {
 		t.Error(err)
 	}

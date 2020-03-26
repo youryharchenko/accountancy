@@ -8,14 +8,15 @@ import (
 
 // Trait -
 type Trait struct {
-	ID      int64
-	UUID    string                 `xorm:"varchar(36) notnull unique"`
-	Name    string                 `xorm:"varchar(1024) notnull unique"`
-	Props   map[string]interface{} `xorm:"jsonb"`
-	Lib     string                 `xorm:"text"`
-	Status  int                    `xorm:"notnull index"`
-	Created time.Time              `xorm:"created"`
-	Updated time.Time              `xorm:"updated"`
+	ID         int64
+	UUID       string                 `xorm:"varchar(36) notnull unique"`
+	Name       string                 `xorm:"varchar(1024) notnull unique"`
+	Props      map[string]interface{} `xorm:"jsonb"`
+	Lib        string                 `xorm:"text"`
+	LibContent string                 `xorm:"-"`
+	Status     int                    `xorm:"notnull index"`
+	Created    time.Time              `xorm:"created"`
+	Updated    time.Time              `xorm:"updated"`
 }
 
 // TraitObject -

@@ -77,13 +77,7 @@ func traitObjectInsertOrUpdate(db DB, trait *Trait, object *Object) (affected in
 		return
 	}
 
-	jsFind := &File{Name: trait.Lib}
-	_, err = jsFind.Get(db)
-	if err != nil {
-		return
-	}
-
-	js := string(jsFind.Content)
+	js := trait.LibContent
 
 	vm := otto.New()
 	_, err = vm.Run(js)
