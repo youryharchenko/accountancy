@@ -1,0 +1,12 @@
+{
+    "request": {
+        "command": "system",
+        "service": "dropdb"
+    },
+    "db": {
+        "driver": "sqlite3",
+        "connection": "./test/sqlite/test.db",
+        "show": true
+    },
+    "body": {}
+}

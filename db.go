@@ -56,19 +56,21 @@ func LoadMeta(db DB) (meta *Meta, err error) {
 
 // AddTrait -
 func (meta *Meta) AddTrait(trait *Trait) {
-	meta.TraitsByName[trait.Name] = trait
-	meta.TraitsByID[trait.ID] = trait
+	tmp := *trait
+	meta.TraitsByName[trait.Name] = &tmp
+	meta.TraitsByID[trait.ID] = &tmp
 }
 
 // AddRelation -
 func (meta *Meta) AddRelation(relation *Relation) {
-	meta.RelationsByName[relation.Name] = relation
-	meta.RelationsByID[relation.ID] = relation
+	tmp := *relation
+	meta.RelationsByName[relation.Name] = &tmp
+	meta.RelationsByID[relation.ID] = &tmp
 }
 
 // AddRelTraits -
 func (meta *Meta) AddRelTraits(relTraits *RelationTraits) (err error) {
-	meta.RelTraitsByID[relTraits.ID] = relTraits
+	tmp := *relTraits
 
 	rel, ok := meta.RelationsByID[relTraits.RelationID]
 	if !ok {
@@ -79,14 +81,21 @@ func (meta *Meta) AddRelTraits(relTraits *RelationTraits) (err error) {
 	traitFrom, ok := meta.TraitsByID[relTraits.TraitFromID]
 	if !ok {
 		err = fmt.Errorf("Meta.AddRelTraits: trait from '%d' is missing", relTraits.TraitFromID)
+		return
 	}
 
 	traitTo, ok := meta.TraitsByID[relTraits.TraitToID]
 	if !ok {
 		err = fmt.Errorf("Meta.AddRelTraits: trait from '%d' is missing", relTraits.TraitToID)
+		return
 	}
 
-	meta.RelTraitsByName[RelationTraitsKey{RelationName: rel.Name, TraitFromName: traitFrom.Name, TraitToName: traitTo.Name}] = relTraits
+	tmp.RelationName = rel.Name
+	tmp.TraitFromName = traitFrom.Name
+	tmp.TraitToName = traitTo.Name
+
+	meta.RelTraitsByID[relTraits.ID] = &tmp
+	meta.RelTraitsByName[RelationTraitsKey{RelationName: rel.Name, TraitFromName: traitFrom.Name, TraitToName: traitTo.Name}] = &tmp
 
 	return
 }

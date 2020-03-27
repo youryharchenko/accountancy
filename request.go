@@ -50,6 +50,13 @@ func Run(request string) (response string, err error) {
 			return
 		}
 		response, err = RunImport(servJSON.String(), request)
+	case "export":
+		if !servJSON.Exists() {
+			err = fmt.Errorf("Run: export - field 'request.service' is missing")
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			return
+		}
+		response, err = RunExport(servJSON.String(), request)
 	default:
 		err = fmt.Errorf("Run: unknown command '%s'", command)
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)

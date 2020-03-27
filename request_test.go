@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/tidwall/buntdb"
 	"github.com/tidwall/gjson"
 )
@@ -16,7 +17,7 @@ import (
 var dbDriver = "postgres"
 var dbConn = "host=localhost port=5432 user=accountancy password=accountancy dbname=accountancy sslmode=disable"
 
-func TestSystemUpload(t *testing.T) {
+func TestSystemUploadPostgres(t *testing.T) {
 
 	names := []string{
 		"/trait/terminal.js",
@@ -67,7 +68,59 @@ func TestSystemUpload(t *testing.T) {
 	}
 }
 
-func TestBatchSystemDropdbInitdb(t *testing.T) {
+func TestSystemUploadSqlite(t *testing.T) {
+
+	names := []string{
+		"/trait/terminal.js",
+		"/trait/counterparty.js",
+		"/trait/account.js",
+		"/trait/transaction.js",
+		"/trait/model.js",
+	}
+
+	tmplFile, err := ioutil.ReadFile("./test/sqlite/upload.tmpl")
+	if err != nil {
+		t.Error(err)
+	}
+
+	tmpl, err := template.New("upload").Parse(string(tmplFile))
+	if err != nil {
+		t.Error(err)
+	}
+
+	for _, name := range names {
+
+		contFile, err := ioutil.ReadFile("./test/file" + name)
+		if err != nil {
+			t.Error(err)
+			continue
+		}
+
+		content := base64.StdEncoding.EncodeToString(contFile)
+
+		data := map[string]interface{}{
+			"UUID":    uuid.New().String(),
+			"Name":    name,
+			"Content": content,
+		}
+		var buff bytes.Buffer
+
+		err = tmpl.Execute(&buff, data)
+		if err != nil {
+			t.Error(err)
+		}
+
+		response, err := Run(buff.String())
+		if err != nil {
+			t.Error(err)
+		}
+
+		t.Error(response)
+
+	}
+}
+
+func TestBatchSystemDropdbInitdbPostgres(t *testing.T) {
 
 	src, err := ioutil.ReadFile("./test/dropdb-initdb.json")
 	if err != nil {
@@ -83,7 +136,23 @@ func TestBatchSystemDropdbInitdb(t *testing.T) {
 	}
 }
 
-func TestSystemInitdb(t *testing.T) {
+func TestBatchSystemDropdbInitdbSqlite(t *testing.T) {
+
+	src, err := ioutil.ReadFile("./test/sqlite/dropdb-initdb.json")
+	if err != nil {
+		t.Error(err)
+	}
+
+	response, err := RunBatch(string(src))
+	if err != nil {
+		t.Error(err)
+	}
+	if response != `{"message": "ok", "status": 0}` {
+		t.Error(response)
+	}
+}
+
+func TestSystemInitdbPostgres(t *testing.T) {
 
 	src, err := ioutil.ReadFile("./test/initdb.json")
 	if err != nil {
@@ -99,7 +168,23 @@ func TestSystemInitdb(t *testing.T) {
 	}
 }
 
-func TestSystemDropdb(t *testing.T) {
+func TestSystemInitdbSqlite(t *testing.T) {
+
+	src, err := ioutil.ReadFile("./test/sqlite/initdb.json")
+	if err != nil {
+		t.Error(err)
+	}
+
+	response, err := Run(string(src))
+	if err != nil {
+		t.Error(err)
+	}
+	if response != `{"message": "ok", "status": 0}` {
+		t.Error(response)
+	}
+}
+
+func TestSystemDropdbPostgres(t *testing.T) {
 
 	src, err := ioutil.ReadFile("./test/dropdb.json")
 	if err != nil {
@@ -115,7 +200,23 @@ func TestSystemDropdb(t *testing.T) {
 	}
 }
 
-func TestImportMeta(t *testing.T) {
+func TestSystemDropdbSqlite(t *testing.T) {
+
+	src, err := ioutil.ReadFile("./test/sqlite/dropdb.json")
+	if err != nil {
+		t.Error(err)
+	}
+
+	response, err := Run(string(src))
+	if err != nil {
+		t.Error(err)
+	}
+	if response != `{"message": "ok", "status": 0}` {
+		t.Error(response)
+	}
+}
+
+func TestImportMetaPostgres(t *testing.T) {
 
 	src, err := ioutil.ReadFile("./test/meta.json")
 	if err != nil {
@@ -131,9 +232,25 @@ func TestImportMeta(t *testing.T) {
 
 }
 
-func TestImportData(t *testing.T) {
+func TestImportMetaSqlite(t *testing.T) {
 
-	tmplFile, err := ioutil.ReadFile("./test/data.tmpl")
+	src, err := ioutil.ReadFile("./test/sqlite/import-meta.json")
+	if err != nil {
+		t.Error(err)
+	}
+
+	response, err := Run(string(src))
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Error(response)
+
+}
+
+func TestImportDataSqlite(t *testing.T) {
+
+	tmplFile, err := ioutil.ReadFile("./test/sqlite/data.tmpl")
 	if err != nil {
 		t.Error(err)
 	}
@@ -143,7 +260,7 @@ func TestImportData(t *testing.T) {
 		t.Error(err)
 	}
 
-	traitName := "Transaction"
+	traitNames := []interface{}{"Transaction", "Model"}
 
 	db, err := buntdb.Open("../../../../../Niko/db/context-prod.db")
 	if err != nil {
@@ -162,7 +279,6 @@ func TestImportData(t *testing.T) {
 	i := 0
 
 	data := []map[string]interface{}{}
-	delemiter := ""
 
 	err = db.View(func(tx *buntdb.Tx) (err error) {
 		tx.Ascend("", func(key, value string) bool {
@@ -179,14 +295,12 @@ func TestImportData(t *testing.T) {
 			props := dataJSON.Raw
 
 			obj := map[string]interface{}{
-				"Name":      name,
-				"Props":     props,
-				"TraitName": traitName,
-				"Delemiter": delemiter,
+				"Name":       name,
+				"Props":      props,
+				"TraitNames": traitNames,
 			}
 
 			data = append(data, obj)
-			delemiter = ","
 
 			return true
 		})
@@ -207,7 +321,25 @@ func TestImportData(t *testing.T) {
 
 	//t.Error(buff.String())
 
+	//return
+
 	response, err := Run(buff.String())
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Error(response)
+
+}
+
+func TestExportMetaSqlite(t *testing.T) {
+
+	src, err := ioutil.ReadFile("./test/sqlite/export-meta.json")
+	if err != nil {
+		t.Error(err)
+	}
+
+	response, err := Run(string(src))
 	if err != nil {
 		t.Error(err)
 	}

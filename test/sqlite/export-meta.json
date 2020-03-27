@@ -1,0 +1,11 @@
+{
+    "request": {
+        "command": "export",
+        "service": "meta"
+    },
+    "db": {
+        "driver": "sqlite3",
+        "connection": "./test/sqlite/test.db",
+        "show": true
+    }
+}

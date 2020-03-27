@@ -78,8 +78,6 @@ func RunImport(service string, request string) (response string, err error) {
 // ImportMeta -
 func ImportMeta(sess *xorm.Session, request string) (response string, err error) {
 
-	//relDict := map[string]*Relation{}
-	//traitDict := map[string]*Trait{}
 	meta, err := LoadMeta(sess)
 	if err != nil {
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)

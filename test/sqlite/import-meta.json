@@ -4,8 +4,8 @@
         "service": "meta"
     },
     "db": {
-        "driver": "postgres",
-        "connection": "host=localhost port=5432 user=accountancy password=accountancy dbname=accountancy sslmode=disable",
+        "driver": "sqlite3",
+        "connection": "./test/sqlite/test.db",
         "show": true
     },
     "body": {
@@ -40,6 +40,12 @@
                 "name": "Transaction",
                 "props": {},
                 "lib": "/trait/transaction.js"
+            },
+            {
+                "uuid": "30d1d685-cb8b-4311-b2f6-cbd62da63af0",
+                "name": "Model",
+                "props": {},
+                "lib": "/trait/model.js"
             }
 
         ],

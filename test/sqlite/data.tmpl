@@ -1,0 +1,21 @@
+{
+    "request": {
+        "command": "import",
+        "service": "data"
+    },
+    "db": {
+        "driver": "sqlite3",
+        "connection": "./test/sqlite/test.db",
+        "show": true
+    },
+    "body": {
+        "objects": [
+            {{range $i, $obj := .}}{{if gt $i 0}},{{end}}
+            {
+                "name": "{{$obj.Name}}",
+                "props": {{$obj.Props}},
+                "traits": [{{range $j, $traitName := $obj.TraitNames}}{{if gt $j 0}},{{end}}"{{$traitName}}"{{end}}]
+            }{{end}}
+        ]
+    }
+}

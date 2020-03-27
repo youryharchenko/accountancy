@@ -8,29 +8,29 @@ import (
 
 // Relation -
 type Relation struct {
-	ID      int64
-	UUID    string                 `xorm:"varchar(36) notnull unique"`
-	Name    string                 `xorm:"varchar(1024) notnull unique"`
-	Props   map[string]interface{} `xorm:"jsonb"`
-	Status  int                    `xorm:"notnull index"`
-	Created time.Time              `xorm:"created"`
-	Updated time.Time              `xorm:"updated"`
+	ID      int64                  `json:"-"`
+	UUID    string                 `xorm:"varchar(36) notnull unique" json:"uuid"`
+	Name    string                 `xorm:"varchar(1024) notnull unique" json:"name"`
+	Props   map[string]interface{} `xorm:"jsonb" json:"props"`
+	Status  int                    `xorm:"notnull index" json:"-"`
+	Created time.Time              `xorm:"created" json:"-"`
+	Updated time.Time              `xorm:"updated" json:"-"`
 }
 
 // RelationTraits -
 type RelationTraits struct {
-	ID            int64
-	RelationID    int64                  `xorm:"notnull unique(relation_traits)"`
+	ID            int64                  `json:"-"`
+	RelationID    int64                  `xorm:"notnull unique(relation_traits)" json:"-"`
 	RelationName  string                 `xorm:"-" json:"relation"`
-	TraitFromID   int64                  `xorm:"notnull unique(relation_traits)"`
+	TraitFromID   int64                  `xorm:"notnull unique(relation_traits)" json:"-"`
 	TraitFromName string                 `xorm:"-" json:"trait-from"`
-	TraitToID     int64                  `xorm:"notnull unique(relation_traits)"`
+	TraitToID     int64                  `xorm:"notnull unique(relation_traits)" json:"-"`
 	TraitToName   string                 `xorm:"-" json:"trait-to"`
-	Props         map[string]interface{} `xorm:"jsonb"`
-	Lib           string                 `xorm:"text"`
-	Status        int                    `xorm:"notnull index"`
-	Created       time.Time              `xorm:"created"`
-	Updated       time.Time              `xorm:"updated"`
+	Props         map[string]interface{} `xorm:"jsonb" json:"props"`
+	Lib           string                 `xorm:"text"  json:"lib"`
+	Status        int                    `xorm:"notnull index" json:"-"`
+	Created       time.Time              `xorm:"created" json:"-"`
+	Updated       time.Time              `xorm:"updated" json:"-"`
 }
 
 // RelationTraitsKey -
