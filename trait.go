@@ -21,13 +21,16 @@ type Trait struct {
 
 // TraitObject -
 type TraitObject struct {
-	ID       int64
-	TraitID  int64                  `xorm:"notnull unique(trait_object)"`
-	ObjectID int64                  `xorm:"notnull unique(trait_object)"`
-	Props    map[string]interface{} `xorm:"jsonb"`
-	Status   int                    `xorm:"notnull index"`
-	Created  time.Time              `xorm:"created"`
-	Updated  time.Time              `xorm:"updated"`
+	ID         int64                  `json:"-"`
+	TraitID    int64                  `xorm:"notnull unique(trait_object)" json:"-"`
+	TraitName  string                 `xorm:"-" json:"trait-name"`
+	ObjectID   int64                  `xorm:"notnull unique(trait_object)" json:"-"`
+	ObjectName string                 `xorm:"-" json:"object-name"`
+	Props      map[string]interface{} `xorm:"jsonb" json:"props"`
+	Hash       string                 `xorm:"text" json:"hash"`
+	Status     int                    `xorm:"notnull index" json:"-"`
+	Created    time.Time              `xorm:"created" json:"-"`
+	Updated    time.Time              `xorm:"updated" json:"-"`
 }
 
 // NewTrait -

@@ -1,6 +1,8 @@
 package accountancy
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -106,6 +108,11 @@ func traitObjectInsertOrUpdate(db DB, trait *Trait, object *Object) (affected in
 		return
 	}
 
+	traitObject.Hash, err = makeHash(traitObject.Props)
+	if err != nil {
+		return
+	}
+
 	if ok {
 		traitObject.ID = find.ID
 		_, err = db.ID(find.ID).Update(traitObject)
@@ -197,5 +204,19 @@ func makeDocsFromContext(eng *xorm.Engine, ctx string) (docs []*Document, err er
 
 	err = json.Unmarshal([]byte(result.String()), &docs)
 
+	return
+}
+
+func makeHash(props map[string]interface{}) (s string, err error) {
+	buf, err := json.Marshal(props)
+	if err != nil {
+		return
+	}
+	h := sha256.New()
+	_, err = h.Write(buf)
+	if err != nil {
+		return
+	}
+	s = base64.StdEncoding.EncodeToString(h.Sum(nil))
 	return
 }

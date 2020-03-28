@@ -250,7 +250,7 @@ func TestImportMetaSqlite(t *testing.T) {
 
 func TestImportDataSqlite(t *testing.T) {
 
-	tmplFile, err := ioutil.ReadFile("./test/sqlite/data.tmpl")
+	tmplFile, err := ioutil.ReadFile("./test/sqlite/import-data.tmpl")
 	if err != nil {
 		t.Error(err)
 	}

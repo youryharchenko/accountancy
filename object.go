@@ -9,21 +9,27 @@ import (
 
 // Object -
 type Object struct {
-	ID      int64
-	UUID    string                 `xorm:"varchar(36) notnull unique"`
-	Name    string                 `xorm:"varchar(1024) notnull unique"`
-	Props   map[string]interface{} `xorm:"jsonb"`
-	Status  int                    `xorm:"notnull index"`
-	Created time.Time              `xorm:"created"`
-	Updated time.Time              `xorm:"updated"`
+	ID      int64                  `json:"-"`
+	UUID    string                 `xorm:"varchar(36) notnull unique" json:"uuid"`
+	Name    string                 `xorm:"varchar(1024) notnull unique" json:"name"`
+	Props   map[string]interface{} `xorm:"jsonb" json:"props"`
+	Hash    string                 `xorm:"text" json:"hash"`
+	Status  int                    `xorm:"notnull index" json:"-"`
+	Created time.Time              `xorm:"created" json:"-"`
+	Updated time.Time              `xorm:"updated" json:"-"`
 }
 
 // NewObject -
 func NewObject(name string, props map[string]interface{}) (object *Object, err error) {
+	h, err := makeHash(props)
+	if err != nil {
+		return
+	}
 	object = &Object{
 		UUID:  uuid.New().String(),
 		Name:  name,
 		Props: props,
+		Hash:  h,
 	}
 	return
 }
