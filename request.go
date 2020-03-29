@@ -2,6 +2,7 @@ package accountancy
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/tidwall/gjson"
 )
@@ -9,7 +10,8 @@ import (
 var tmplResponse = `{"message": "%s", "status": %d}`
 
 // Run -
-func Run(request string) (response string, err error) {
+func Run(request string, meta *Meta, db DB) (response string, err error) {
+
 	if !gjson.Valid(request) {
 		err = fmt.Errorf("Run: request is not valid JSON")
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
@@ -42,21 +44,28 @@ func Run(request string) (response string, err error) {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
 		}
-		response, err = RunSystem(servJSON.String(), request)
+		response, err = RunSystem(servJSON.String(), request, meta, db)
 	case "import":
 		if !servJSON.Exists() {
 			err = fmt.Errorf("Run: import - field 'request.service' is missing")
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
 		}
-		response, err = RunImport(servJSON.String(), request)
+		response, err = RunImport(servJSON.String(), request, meta, db)
 	case "export":
 		if !servJSON.Exists() {
 			err = fmt.Errorf("Run: export - field 'request.service' is missing")
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
 		}
-		response, err = RunExport(servJSON.String(), request)
+		response, err = RunExport(servJSON.String(), request, meta, db)
+	case "insert":
+		if !servJSON.Exists() {
+			err = fmt.Errorf("Run: insert - field 'request.service' is missing")
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			return
+		}
+		response, err = RunInsert(servJSON.String(), request, meta, db)
 	default:
 		err = fmt.Errorf("Run: unknown command '%s'", command)
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
@@ -67,7 +76,9 @@ func Run(request string) (response string, err error) {
 }
 
 // RunBatch -
-func RunBatch(request string) (response string, err error) {
+func RunBatch(request string, meta *Meta, db DB) (response string, err error) {
+	log.Println("RunBatch:", request)
+
 	if !gjson.Valid(request) {
 		err = fmt.Errorf("RunBatch: request is not valid JSON")
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
@@ -78,7 +89,7 @@ func RunBatch(request string) (response string, err error) {
 
 	batchJSON := srcJSON.Array()
 	for _, req := range batchJSON {
-		response, err = Run(req.Raw)
+		response, err = Run(req.Raw, meta, db)
 		if err != nil {
 			return
 		}

@@ -90,7 +90,7 @@ func TestCreateTrx(t *testing.T) {
 				return true
 			}
 
-			_, _, err = traitTrx.AddObject(sess, obj)
+			_, _, err = traitTrx.AddObject(sess, obj, nil)
 			if err != nil {
 				t.Error(i, err)
 				err = sess.Rollback()

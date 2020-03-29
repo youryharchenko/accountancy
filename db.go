@@ -2,6 +2,7 @@ package accountancy
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/tidwall/gjson"
 	"xorm.io/core"
@@ -51,6 +52,8 @@ func LoadMeta(db DB) (meta *Meta, err error) {
 	if err != nil {
 		return
 	}
+
+	log.Println("LoadMeta: loaded")
 	return
 }
 

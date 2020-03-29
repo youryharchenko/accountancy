@@ -58,7 +58,7 @@ func TestSystemUploadPostgres(t *testing.T) {
 			t.Error(err)
 		}
 
-		response, err := Run(buff.String())
+		response, err := Run(buff.String(), nil, nil)
 		if err != nil {
 			t.Error(err)
 		}
@@ -110,7 +110,7 @@ func TestSystemUploadSqlite(t *testing.T) {
 			t.Error(err)
 		}
 
-		response, err := Run(buff.String())
+		response, err := Run(buff.String(), nil, nil)
 		if err != nil {
 			t.Error(err)
 		}
@@ -127,7 +127,7 @@ func TestBatchSystemDropdbInitdbPostgres(t *testing.T) {
 		t.Error(err)
 	}
 
-	response, err := RunBatch(string(src))
+	response, err := RunBatch(string(src), nil, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -143,7 +143,7 @@ func TestBatchSystemDropdbInitdbSqlite(t *testing.T) {
 		t.Error(err)
 	}
 
-	response, err := RunBatch(string(src))
+	response, err := RunBatch(string(src), nil, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -159,7 +159,7 @@ func TestSystemInitdbPostgres(t *testing.T) {
 		t.Error(err)
 	}
 
-	response, err := Run(string(src))
+	response, err := Run(string(src), nil, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -175,7 +175,7 @@ func TestSystemInitdbSqlite(t *testing.T) {
 		t.Error(err)
 	}
 
-	response, err := Run(string(src))
+	response, err := Run(string(src), nil, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -191,7 +191,7 @@ func TestSystemDropdbPostgres(t *testing.T) {
 		t.Error(err)
 	}
 
-	response, err := Run(string(src))
+	response, err := Run(string(src), nil, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -207,7 +207,7 @@ func TestSystemDropdbSqlite(t *testing.T) {
 		t.Error(err)
 	}
 
-	response, err := Run(string(src))
+	response, err := Run(string(src), nil, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -223,7 +223,7 @@ func TestImportMetaPostgres(t *testing.T) {
 		t.Error(err)
 	}
 
-	response, err := Run(string(src))
+	response, err := Run(string(src), nil, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -239,7 +239,7 @@ func TestImportMetaSqlite(t *testing.T) {
 		t.Error(err)
 	}
 
-	response, err := Run(string(src))
+	response, err := Run(string(src), nil, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -260,7 +260,7 @@ func TestImportDataSqlite(t *testing.T) {
 		t.Error(err)
 	}
 
-	traitNames := []interface{}{"Transaction", "Model"}
+	traitNames := []interface{}{"Transaction"}
 
 	db, err := buntdb.Open("../../../../../Niko/db/context-prod.db")
 	if err != nil {
@@ -302,6 +302,10 @@ func TestImportDataSqlite(t *testing.T) {
 
 			data = append(data, obj)
 
+			if i > 50 {
+				return false
+			}
+
 			return true
 		})
 		return
@@ -323,7 +327,7 @@ func TestImportDataSqlite(t *testing.T) {
 
 	//return
 
-	response, err := Run(buff.String())
+	response, err := Run(buff.String(), nil, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -339,7 +343,7 @@ func TestExportMetaSqlite(t *testing.T) {
 		t.Error(err)
 	}
 
-	response, err := Run(string(src))
+	response, err := Run(string(src), nil, nil)
 	if err != nil {
 		t.Error(err)
 	}

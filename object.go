@@ -1,6 +1,8 @@
 package accountancy
 
 import (
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -79,7 +81,80 @@ func (object *Object) InsertOrUpdate(db DB, find *Object) (affected int64, inser
 }
 
 // AddTrait -
-func (object *Object) AddTrait(eng *xorm.Engine, trait *Trait) (affected int64, err error) {
-	affected, _, err = traitObjectInsertOrUpdate(eng, trait, object)
+func (object *Object) AddTrait(eng *xorm.Engine, trait *Trait, meta *Meta) (affected int64, err error) {
+	affected, _, err = TraitObjectInsertOrUpdate(eng, trait, object, meta)
+	return
+}
+
+// InsertOrUpdateObject -
+func InsertOrUpdateObject(sess *xorm.Session, objMap map[string]interface{}, meta *Meta) (response string, err error) {
+	if meta == nil {
+		meta, err = LoadMeta(sess)
+		if err != nil {
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			return
+		}
+	}
+
+	name, ok := objMap["name"].(string)
+	if !ok {
+		err = fmt.Errorf("InsertOrUpdateObject: field 'name' is missing, source: %v", objMap)
+		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+		return
+	}
+	if len(name) == 0 {
+		err = fmt.Errorf("InsertOrUpdateObject: field 'name' length == 0, source: %v", objMap)
+		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+		return
+	}
+	props, ok := objMap["props"].(map[string]interface{})
+	if !ok {
+		err = fmt.Errorf("InsertOrUpdateObject: field 'props' is missing, source: %v", objMap)
+		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+		return
+	}
+	traits, ok := objMap["traits"].([]interface{})
+	if !ok {
+		err = fmt.Errorf("InsertOrUpdateObject: field 'traits' is missing, source: %v", objMap)
+		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+		return
+	}
+
+	log.Println("InsertOrUpdateObject:", name)
+
+	var obj *Object
+	obj, err = NewObject(name, props)
+	if err != nil {
+		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+		return
+	}
+
+	_, _, err = obj.InsertOrUpdate(sess, &Object{Name: name})
+	if err != nil {
+		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+		return
+	}
+
+	for _, traitName := range traits {
+
+		name, ok := traitName.(string)
+		if !ok {
+			err = fmt.Errorf("InsertOrUpdateObject: trait name '%s' is not string", traitName)
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			return
+		}
+		trait, ok := meta.TraitsByName[name]
+		if !ok {
+			err = fmt.Errorf("InsertOrUpdateObject: trait '%s' is missing", traitName)
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			return
+		}
+		_, _, err = trait.AddObject(sess, obj, meta)
+		if err != nil {
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			return
+		}
+	}
+
 	return
 }

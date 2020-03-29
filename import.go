@@ -3,39 +3,63 @@ package accountancy
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/tidwall/gjson"
 	"xorm.io/xorm"
 )
 
 // RunImport -
-func RunImport(service string, request string) (response string, err error) {
+func RunImport(service string, request string, meta *Meta, db DB) (response string, err error) {
+
+	log.Println("Start Import:", service)
 
 	var eng *xorm.Engine
-	eng, err = ConnectRequestDB(request)
-	if err != nil {
-		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-		return
-	}
-	defer eng.Close()
-
-	switch service {
-	case "meta":
-		sess := eng.NewSession()
-		defer sess.Close()
-
-		err = sess.Begin()
+	if db == nil {
+		eng, err = ConnectRequestDB(request)
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
 		}
+		defer eng.Close()
+		db = eng
+	} else {
+		eng = db.(*xorm.Engine)
+	}
 
-		response, err = ImportMeta(sess, request)
+	sess := eng.NewSession()
+	defer sess.Close()
+
+	err = sess.Begin()
+	if err != nil {
+		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+		return
+	}
+
+	if meta == nil {
+		meta, err = LoadMeta(sess)
+		if err != nil {
+			err = sess.Rollback()
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			return
+		}
+	}
+
+	switch service {
+	case "meta":
+		response, err = ImportMeta(sess, request, meta)
 		if err != nil {
 			err = sess.Rollback()
 			if err != nil {
 				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			}
+			return
+		}
+
+		meta, err = LoadMeta(sess)
+		if err != nil {
+			err = sess.Rollback()
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
 		}
 
@@ -44,16 +68,7 @@ func RunImport(service string, request string) (response string, err error) {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 		}
 	case "data":
-		sess := eng.NewSession()
-		defer sess.Close()
-
-		err = sess.Begin()
-		if err != nil {
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			return
-		}
-
-		response, err = ImportData(sess, request)
+		response, err = ImportData(sess, request, meta)
 		if err != nil {
 			err = sess.Rollback()
 			if err != nil {
@@ -62,26 +77,29 @@ func RunImport(service string, request string) (response string, err error) {
 			return
 		}
 
-		err = sess.Commit()
-		if err != nil {
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-		}
-
 	default:
 		err = fmt.Errorf("RunImport: unknown service '%s'", service)
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 	}
 
+	err = sess.Commit()
+	if err != nil {
+		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+	}
+
+	log.Println("Finish Import:", service)
 	return
 }
 
 // ImportMeta -
-func ImportMeta(sess *xorm.Session, request string) (response string, err error) {
+func ImportMeta(sess *xorm.Session, request string, meta *Meta) (response string, err error) {
 
-	meta, err := LoadMeta(sess)
-	if err != nil {
-		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-		return
+	if meta == nil {
+		meta, err = LoadMeta(sess)
+		if err != nil {
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			return
+		}
 	}
 
 	srcJSON := gjson.Parse(request)
@@ -234,11 +252,14 @@ func ImportMeta(sess *xorm.Session, request string) (response string, err error)
 }
 
 // ImportData -
-func ImportData(sess *xorm.Session, request string) (response string, err error) {
-	meta, err := LoadMeta(sess)
-	if err != nil {
-		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-		return
+func ImportData(sess *xorm.Session, request string, meta *Meta) (response string, err error) {
+
+	if meta == nil {
+		meta, err = LoadMeta(sess)
+		if err != nil {
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			return
+		}
 	}
 
 	srcJSON := gjson.Parse(request)
@@ -256,69 +277,17 @@ func ImportData(sess *xorm.Session, request string) (response string, err error)
 		objects = objsJSON.Array()
 
 		for _, objJSON := range objects {
-			objMap := map[string]interface{}{}
 
+			objMap := map[string]interface{}{}
 			if err = json.Unmarshal([]byte(objJSON.Raw), &objMap); err != nil {
 				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 				return
 			}
 
-			name, ok := objMap["name"].(string)
-			if !ok {
-				err = fmt.Errorf("ImportData: field 'name' is missing, source: %s", objJSON.Raw)
-				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-				return
-			}
-			if len(name) == 0 {
-				err = fmt.Errorf("ImportData: field 'name' length == 0, source: %s", objJSON.Raw)
-				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-				return
-			}
-			props, ok := objMap["props"].(map[string]interface{})
-			if !ok {
-				err = fmt.Errorf("ImportData: field 'props' is missing, source: %s", objJSON.Raw)
-				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-				return
-			}
-			traits, ok := objMap["traits"].([]interface{})
-			if !ok {
-				err = fmt.Errorf("ImportData: field 'traits' is missing, source: %s", objJSON.Raw)
-				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-				return
-			}
-
-			var obj *Object
-			obj, err = NewObject(name, props)
+			response, err = InsertOrUpdateObject(sess, objMap, meta)
 			if err != nil {
 				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 				return
-			}
-
-			_, _, err = obj.InsertOrUpdate(sess, &Object{Name: name})
-			if err != nil {
-				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-				return
-			}
-
-			for _, traitName := range traits {
-
-				name, ok := traitName.(string)
-				if !ok {
-					err = fmt.Errorf("ImportData: trait name '%s' is not string", traitName)
-					response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-					return
-				}
-				trait, ok := meta.TraitsByName[name]
-				if !ok {
-					err = fmt.Errorf("ImportData: trait '%s' is missing", traitName)
-					response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-					return
-				}
-				_, _, err = trait.AddObject(sess, obj)
-				if err != nil {
-					response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-					return
-				}
 			}
 
 		}

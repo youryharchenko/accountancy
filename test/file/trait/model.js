@@ -3,10 +3,20 @@
 function constructor(trait, obj) {
     //var traitStr = JSON.stringify(trait)
     //var objStr = JSON.stringify(obj)
-    var result = {};
-    if (obj.pay && obj.pay.request.model) {
-        result = obj.pay.request.model;
-    }
+    var props = {};
+    var status = -1.0;
+    var hash = "";
+    var batch = [];
 
-    return result;
+    props = obj;
+    hash = makeHash(props);
+    status = 0.0;
+    
+
+    return {
+        "props": props,
+        "hash": hash,
+        "batch": batch,
+        "status": status
+    };
 }

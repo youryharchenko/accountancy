@@ -8,15 +8,20 @@ import (
 )
 
 // RunExport -
-func RunExport(service string, request string) (response string, err error) {
+func RunExport(service string, request string, meta *Meta, db DB) (response string, err error) {
 
 	var eng *xorm.Engine
-	eng, err = ConnectRequestDB(request)
-	if err != nil {
-		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-		return
+	if db == nil {
+		eng, err = ConnectRequestDB(request)
+		if err != nil {
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			return
+		}
+		defer eng.Close()
+		db = eng
+	} else {
+		eng = db.(*xorm.Engine)
 	}
-	defer eng.Close()
 
 	switch service {
 	case "meta":
