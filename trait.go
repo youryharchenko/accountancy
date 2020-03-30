@@ -208,10 +208,11 @@ func TraitObjectInsertOrUpdate(db DB, trait *Trait, object *Object, meta *Meta) 
 		inserted = true
 	}
 
-	batch, isBatch := pack["batch"].([]map[string]interface{})
-	if isBatch {
+	objBatch, isObjBatch := pack["batch"].(map[string]interface{})
+	if isObjBatch {
+
 		var buf []byte
-		buf, err = json.Marshal(batch)
+		buf, err = json.Marshal(objBatch)
 		if err != nil {
 			return
 		}
@@ -219,6 +220,7 @@ func TraitObjectInsertOrUpdate(db DB, trait *Trait, object *Object, meta *Meta) 
 		if err != nil {
 			return
 		}
+
 	}
 
 	return

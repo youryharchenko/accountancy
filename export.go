@@ -3,74 +3,24 @@ package accountancy
 import (
 	"encoding/json"
 	"fmt"
-
-	"xorm.io/xorm"
 )
 
 // RunExport -
 func RunExport(service string, request string, meta *Meta, db DB) (response string, err error) {
 
-	var eng *xorm.Engine
-	if db == nil {
-		eng, err = ConnectRequestDB(request)
-		if err != nil {
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			return
-		}
-		defer eng.Close()
-		db = eng
-	} else {
-		eng = db.(*xorm.Engine)
-	}
-
 	switch service {
 	case "meta":
-		sess := eng.NewSession()
-		defer sess.Close()
-
-		err = sess.Begin()
+		response, err = ExportMeta(db, request)
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
-		}
-
-		response, err = ExportMeta(sess, request)
-		if err != nil {
-			err = sess.Rollback()
-			if err != nil {
-				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			}
-			return
-		}
-
-		err = sess.Commit()
-		if err != nil {
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 		}
 	case "data":
-		sess := eng.NewSession()
-		defer sess.Close()
-
-		err = sess.Begin()
+		response, err = ExportData(db, request)
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
 		}
-
-		response, err = ExportData(sess, request)
-		if err != nil {
-			err = sess.Rollback()
-			if err != nil {
-				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			}
-			return
-		}
-
-		err = sess.Commit()
-		if err != nil {
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-		}
-
 	default:
 		err = fmt.Errorf("RunExport: unknown service '%s'", service)
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
@@ -80,8 +30,8 @@ func RunExport(service string, request string, meta *Meta, db DB) (response stri
 }
 
 // ExportMeta -
-func ExportMeta(sess *xorm.Session, request string) (response string, err error) {
-	meta, err := LoadMeta(sess)
+func ExportMeta(db DB, request string) (response string, err error) {
+	meta, err := LoadMeta(db)
 	if err != nil {
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 		return
@@ -125,6 +75,6 @@ func ExportMeta(sess *xorm.Session, request string) (response string, err error)
 }
 
 // ExportData -
-func ExportData(sess *xorm.Session, request string) (response string, err error) {
+func ExportData(db DB, request string) (response string, err error) {
 	return
 }

@@ -4,52 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-
-	"xorm.io/xorm"
 )
 
 // RunInsert -
 func RunInsert(service string, request string, meta *Meta, db DB) (response string, err error) {
 
 	log.Println("RunInsert", service, request)
-
-	var eng *xorm.Engine
-	var sess *xorm.Session
-
-	if db == nil {
-		eng, err = ConnectRequestDB(request)
-		if err != nil {
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			return
-		}
-		defer eng.Close()
-
-		sess = eng.NewSession()
-		defer sess.Close()
-
-		err = sess.Begin()
-		if err != nil {
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			return
-		}
-
-		db = sess
-	} else {
-		switch db.(type) {
-		case *xorm.Engine:
-			eng = db.(*xorm.Engine)
-			sess = eng.NewSession()
-			defer sess.Close()
-
-			err = sess.Begin()
-			if err != nil {
-				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-				return
-			}
-		case *xorm.Session:
-			sess = db.(*xorm.Session)
-		}
-	}
 
 	bodyMap := map[string]interface{}{}
 	if err = json.Unmarshal([]byte(request), &bodyMap); err != nil {
@@ -64,7 +24,7 @@ func RunInsert(service string, request string, meta *Meta, db DB) (response stri
 	}
 
 	if meta == nil {
-		meta, err = LoadMeta(sess)
+		meta, err = LoadMeta(db)
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
@@ -73,7 +33,7 @@ func RunInsert(service string, request string, meta *Meta, db DB) (response stri
 
 	switch service {
 	case "object":
-		response, err = InsertOrUpdateObject(sess, objMap, meta)
+		response, err = InsertOrUpdateObject(db, objMap, meta)
 	case "link":
 		//response, err = InsertOrUpdateLink(sess, request, meta)
 	default:
@@ -82,13 +42,8 @@ func RunInsert(service string, request string, meta *Meta, db DB) (response stri
 	}
 	if err != nil {
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-		sess.Rollback()
 		return
 	}
 
-	err = sess.Commit()
-	if err != nil {
-		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-	}
 	return
 }

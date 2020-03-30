@@ -76,6 +76,7 @@ func TestSystemUploadSqlite(t *testing.T) {
 		"/trait/account.js",
 		"/trait/transaction.js",
 		"/trait/model.js",
+		"/trait/client.js",
 	}
 
 	tmplFile, err := ioutil.ReadFile("./test/sqlite/upload.tmpl")
@@ -147,9 +148,9 @@ func TestBatchSystemDropdbInitdbSqlite(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if response != `{"message": "ok", "status": 0}` {
-		t.Error(response)
-	}
+
+	t.Error(response)
+
 }
 
 func TestSystemInitdbPostgres(t *testing.T) {
@@ -302,9 +303,9 @@ func TestImportDataSqlite(t *testing.T) {
 
 			data = append(data, obj)
 
-			if i > 50 {
-				return false
-			}
+			//if i > 50 {
+			//	return false
+			//}
 
 			return true
 		})

@@ -46,6 +46,12 @@
                 "name": "Model",
                 "props": {},
                 "lib": "/trait/model.js"
+            },
+            {
+                "uuid": "62753494-ec40-4cfb-be71-9a3347e9852c",
+                "name": "Client",
+                "props": {},
+                "lib": "/trait/client.js"
             }
 
         ],

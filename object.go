@@ -87,9 +87,9 @@ func (object *Object) AddTrait(eng *xorm.Engine, trait *Trait, meta *Meta) (affe
 }
 
 // InsertOrUpdateObject -
-func InsertOrUpdateObject(sess *xorm.Session, objMap map[string]interface{}, meta *Meta) (response string, err error) {
+func InsertOrUpdateObject(db DB, objMap map[string]interface{}, meta *Meta) (response string, err error) {
 	if meta == nil {
-		meta, err = LoadMeta(sess)
+		meta, err = LoadMeta(db)
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
@@ -129,7 +129,7 @@ func InsertOrUpdateObject(sess *xorm.Session, objMap map[string]interface{}, met
 		return
 	}
 
-	_, _, err = obj.InsertOrUpdate(sess, &Object{Name: name})
+	_, _, err = obj.InsertOrUpdate(db, &Object{Name: name})
 	if err != nil {
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 		return
@@ -149,7 +149,7 @@ func InsertOrUpdateObject(sess *xorm.Session, objMap map[string]interface{}, met
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
 		}
-		_, _, err = trait.AddObject(sess, obj, meta)
+		_, _, err = trait.AddObject(db, obj, meta)
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return

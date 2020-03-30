@@ -16,6 +16,8 @@ type DB interface {
 	Find(rowsSlicePtr interface{}, condiBean ...interface{}) error
 	Update(bean interface{}, condiBean ...interface{}) (affected int64, err error)
 	ID(id interface{}) *xorm.Session
+	Sync2(beans ...interface{}) error
+	//DropTable(bean interface{}) error
 }
 
 // Meta -
@@ -196,11 +198,11 @@ func ConnectRequestDB(request string) (eng *xorm.Engine, err error) {
 }
 
 // SyncAll -
-func SyncAll(eng *xorm.Engine) (err error) {
+func SyncAll(db DB) (err error) {
 	ents := entityList()
 
 	for _, ent := range ents {
-		err = Sync(eng, ent)
+		err = Sync(db, ent)
 		if err != nil {
 			return err
 		}
@@ -210,17 +212,38 @@ func SyncAll(eng *xorm.Engine) (err error) {
 }
 
 // DropAll -
-func DropAll(eng *xorm.Engine) (err error) {
+func DropAll(db DB) (err error) {
 
 	ents := entityList()
-	err = eng.DropTables(ents...)
+
+	for _, ent := range ents {
+		err = Drop(db, ent)
+		if err != nil {
+			return err
+		}
+	}
 
 	return
 }
 
 // Sync -
-func Sync(eng *xorm.Engine, ent interface{}) error {
-	return eng.Sync2(ent)
+func Sync(db DB, ent interface{}) error {
+	return db.Sync2(ent)
+}
+
+// Drop -
+func Drop(db DB, ent interface{}) (err error) {
+
+	switch db.(type) {
+	case *xorm.Engine:
+		eng := db.(*xorm.Engine)
+		eng.DropTables(ent)
+	case *xorm.Session:
+		sess := db.(*xorm.Session)
+		sess.DropTable(ent)
+	}
+
+	return
 }
 
 func entityList() (ents []interface{}) {

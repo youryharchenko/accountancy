@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/tidwall/gjson"
-	"xorm.io/xorm"
 )
 
 // RunImport -
@@ -14,32 +13,9 @@ func RunImport(service string, request string, meta *Meta, db DB) (response stri
 
 	log.Println("Start Import:", service)
 
-	var eng *xorm.Engine
-	if db == nil {
-		eng, err = ConnectRequestDB(request)
-		if err != nil {
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			return
-		}
-		defer eng.Close()
-		db = eng
-	} else {
-		eng = db.(*xorm.Engine)
-	}
-
-	sess := eng.NewSession()
-	defer sess.Close()
-
-	err = sess.Begin()
-	if err != nil {
-		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-		return
-	}
-
 	if meta == nil {
-		meta, err = LoadMeta(sess)
+		meta, err = LoadMeta(db)
 		if err != nil {
-			err = sess.Rollback()
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
 		}
@@ -47,33 +23,20 @@ func RunImport(service string, request string, meta *Meta, db DB) (response stri
 
 	switch service {
 	case "meta":
-		response, err = ImportMeta(sess, request, meta)
+		response, err = ImportMeta(db, request, meta)
 		if err != nil {
-			err = sess.Rollback()
-			if err != nil {
-				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			}
 			return
 		}
 
-		meta, err = LoadMeta(sess)
+		meta, err = LoadMeta(db)
 		if err != nil {
-			err = sess.Rollback()
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
-		}
-
-		err = sess.Commit()
-		if err != nil {
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 		}
 	case "data":
-		response, err = ImportData(sess, request, meta)
+		response, err = ImportData(db, request, meta)
 		if err != nil {
-			err = sess.Rollback()
-			if err != nil {
-				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			}
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
 		}
 
@@ -82,20 +45,15 @@ func RunImport(service string, request string, meta *Meta, db DB) (response stri
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 	}
 
-	err = sess.Commit()
-	if err != nil {
-		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-	}
-
 	log.Println("Finish Import:", service)
 	return
 }
 
 // ImportMeta -
-func ImportMeta(sess *xorm.Session, request string, meta *Meta) (response string, err error) {
+func ImportMeta(db DB, request string, meta *Meta) (response string, err error) {
 
 	if meta == nil {
-		meta, err = LoadMeta(sess)
+		meta, err = LoadMeta(db)
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
@@ -124,7 +82,7 @@ func ImportMeta(sess *xorm.Session, request string, meta *Meta) (response string
 				return
 			}
 
-			_, _, err = relation.InsertOrUpdate(sess, &Relation{Name: relation.Name})
+			_, _, err = relation.InsertOrUpdate(db, &Relation{Name: relation.Name})
 			if err != nil {
 				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 				return
@@ -151,7 +109,7 @@ func ImportMeta(sess *xorm.Session, request string, meta *Meta) (response string
 				return
 			}
 
-			_, _, err = trait.InsertOrUpdate(sess, &Trait{Name: trait.Name})
+			_, _, err = trait.InsertOrUpdate(db, &Trait{Name: trait.Name})
 			if err != nil {
 				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 				return
@@ -199,7 +157,7 @@ func ImportMeta(sess *xorm.Session, request string, meta *Meta) (response string
 				return
 			}
 
-			_, _, err = relation.AddRelationTraits(sess, traitFrom, traitTo, relationTraits.Props, relationTraits.Lib)
+			_, _, err = relation.AddRelationTraits(db, traitFrom, traitTo, relationTraits.Props, relationTraits.Lib)
 			if err != nil {
 				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 				return
@@ -238,7 +196,7 @@ func ImportMeta(sess *xorm.Session, request string, meta *Meta) (response string
 			typeDoc.DebTraitID = debTrait.ID
 			typeDoc.CredTraitID = credTrait.ID
 
-			_, _, err = typeDoc.InsertOrUpdate(sess, &TypeDocument{Name: typeDoc.Name})
+			_, _, err = typeDoc.InsertOrUpdate(db, &TypeDocument{Name: typeDoc.Name})
 			if err != nil {
 				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 				return
@@ -252,10 +210,10 @@ func ImportMeta(sess *xorm.Session, request string, meta *Meta) (response string
 }
 
 // ImportData -
-func ImportData(sess *xorm.Session, request string, meta *Meta) (response string, err error) {
+func ImportData(db DB, request string, meta *Meta) (response string, err error) {
 
 	if meta == nil {
-		meta, err = LoadMeta(sess)
+		meta, err = LoadMeta(db)
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
@@ -284,7 +242,7 @@ func ImportData(sess *xorm.Session, request string, meta *Meta) (response string
 				return
 			}
 
-			response, err = InsertOrUpdateObject(sess, objMap, meta)
+			response, err = InsertOrUpdateObject(db, objMap, meta)
 			if err != nil {
 				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 				return

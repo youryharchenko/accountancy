@@ -5,12 +5,22 @@ import (
 	"log"
 
 	"github.com/tidwall/gjson"
+	"xorm.io/xorm"
 )
 
 var tmplResponse = `{"message": "%s", "status": %d}`
 
 // Run -
 func Run(request string, meta *Meta, db DB) (response string, err error) {
+	srcJSON := gjson.Parse(request)
+	dbJSON := srcJSON.Get("db")
+	reqJSON := srcJSON.Get("request")
+	bodyJSON := srcJSON.Get("body")
+	return RunBatch(fmt.Sprintf(`{"db":%s,"batch":[{"request":%s,"body":%s}]}`, dbJSON.Raw, reqJSON.Raw, bodyJSON.Raw), meta, db)
+}
+
+// RunOne -
+func RunOne(request string, meta *Meta, db DB) (response string, err error) {
 
 	if !gjson.Valid(request) {
 		err = fmt.Errorf("Run: request is not valid JSON")
@@ -85,12 +95,60 @@ func RunBatch(request string, meta *Meta, db DB) (response string, err error) {
 		return
 	}
 
-	srcJSON := gjson.Parse(request)
+	var eng *xorm.Engine
+	var sess *xorm.Session
 
+	if db == nil {
+		eng, err = ConnectRequestDB(request)
+		if err != nil {
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			return
+		}
+		defer eng.Close()
+
+		sess = eng.NewSession()
+		defer sess.Close()
+
+		err = sess.Begin()
+		if err != nil {
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			return
+		}
+		defer func() {
+			if !sess.IsClosed() {
+				sess.Commit()
+			}
+		}()
+
+	} else {
+		switch db.(type) {
+		case *xorm.Engine:
+			eng = db.(*xorm.Engine)
+			sess = eng.NewSession()
+			defer sess.Close()
+
+			err = sess.Begin()
+			if err != nil {
+				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+				return
+			}
+			defer func() {
+				if !sess.IsClosed() {
+					sess.Commit()
+				}
+			}()
+		case *xorm.Session:
+			sess = db.(*xorm.Session)
+		}
+	}
+
+	srcJSON := gjson.Parse(request).Get("batch")
 	batchJSON := srcJSON.Array()
 	for _, req := range batchJSON {
-		response, err = Run(req.Raw, meta, db)
+		response, err = RunOne(req.Raw, meta, sess)
 		if err != nil {
+			sess.Rollback()
+			sess.Close()
 			return
 		}
 	}

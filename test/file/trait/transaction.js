@@ -48,6 +48,34 @@ function constructor(trait, obj) {
                     batch.push(insModel);
                 }
 
+                var clientName = obj.pay.request.body.clientName;
+                if (clientName && clientName.length > 0) {
+                    var client = {
+                        "clientName": clientName,
+                        "clientAddress": obj.pay.request.body.clientAddress, 
+                        "clientBirthday": obj.pay.request.body.clientBirthday, 
+                        "clientDocument": obj.pay.request.body.clientDocument, 
+                        "clientIssueDate": obj.pay.request.body.clientIssueDate, 
+                        "clientIssuedBy": obj.pay.request.body.clientIssuedBy, 
+                        "clientTaxNumber": obj.pay.request.body.clientTaxNumber
+                    };
+
+                    //var hashClient = makeHash(client);
+
+                    var insClient = {
+                        "request": {
+                            "command": "insert",
+                            "service": "object"
+                        },
+                        "body": {
+                            "name": clientName,
+                            "props": client,
+                            "traits": ["Client"]
+                        }
+                    };
+                    batch.push(insClient);
+                }
+
                 status = 0.0;
                 break;
         }
@@ -56,7 +84,9 @@ function constructor(trait, obj) {
     return {
         "props": props,
         "hash": hash,
-        "batch": batch,
+        "batch": {
+            "batch": batch
+        },
         "status": status
     };
 }

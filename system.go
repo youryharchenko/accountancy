@@ -6,64 +6,28 @@ import (
 	"fmt"
 
 	"github.com/tidwall/gjson"
-	"xorm.io/xorm"
 )
 
 // RunSystem -
 func RunSystem(service string, request string, meta *Meta, db DB) (response string, err error) {
 
-	var eng *xorm.Engine
-	if db == nil {
-		eng, err = ConnectRequestDB(request)
-		if err != nil {
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			return
-		}
-		defer eng.Close()
-		db = eng
-	} else {
-		eng = db.(*xorm.Engine)
-	}
-
 	switch service {
 	case "initdb":
-		err = SyncAll(eng)
+		err = SyncAll(db)
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 		} else {
 			response = fmt.Sprintf(tmplResponse, "ok", 0)
 		}
 	case "dropdb":
-		err = DropAll(eng)
+		err = DropAll(db)
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 		} else {
 			response = fmt.Sprintf(tmplResponse, "ok", 0)
 		}
 	case "upload":
-		sess := eng.NewSession()
-		defer sess.Close()
-
-		err = sess.Begin()
-		if err != nil {
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			return
-		}
-
-		response, err = SystemUpload(sess, request)
-		if err != nil {
-			err = sess.Rollback()
-			if err != nil {
-				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			}
-			return
-		}
-
-		err = sess.Commit()
-		if err != nil {
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-		}
-
+		response, err = SystemUpload(db, request)
 	default:
 		err = fmt.Errorf("RunSystem: unknown service '%s'", service)
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
@@ -73,7 +37,7 @@ func RunSystem(service string, request string, meta *Meta, db DB) (response stri
 }
 
 // SystemUpload -
-func SystemUpload(sess *xorm.Session, request string) (response string, err error) {
+func SystemUpload(db DB, request string) (response string, err error) {
 
 	srcJSON := gjson.Parse(request)
 
@@ -106,7 +70,7 @@ func SystemUpload(sess *xorm.Session, request string) (response string, err erro
 		Content: content,
 	}
 
-	_, inserted, err := file.InsertOrUpdate(sess, &File{Name: name})
+	_, inserted, err := file.InsertOrUpdate(db, &File{Name: name})
 
 	mess := "updated"
 	if inserted {
