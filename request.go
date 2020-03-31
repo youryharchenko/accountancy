@@ -14,8 +14,23 @@ var tmplResponse = `{"message": "%s", "status": %d}`
 func Run(request string, meta *Meta, db DB) (response string, err error) {
 	srcJSON := gjson.Parse(request)
 	dbJSON := srcJSON.Get("db")
+	if !dbJSON.Exists() {
+		err = fmt.Errorf("Run: object 'db' is missing")
+		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+		return
+	}
 	reqJSON := srcJSON.Get("request")
+	if !reqJSON.Exists() {
+		err = fmt.Errorf("Run: object 'request' is missing")
+		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+		return
+	}
 	bodyJSON := srcJSON.Get("body")
+	if !bodyJSON.Exists() {
+		err = fmt.Errorf("Run: object 'body' is missing")
+		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+		return
+	}
 	return RunBatch(fmt.Sprintf(`{"db":%s,"batch":[{"request":%s,"body":%s}]}`, dbJSON.Raw, reqJSON.Raw, bodyJSON.Raw), meta, db)
 }
 
@@ -23,7 +38,7 @@ func Run(request string, meta *Meta, db DB) (response string, err error) {
 func RunOne(request string, meta *Meta, db DB) (response string, err error) {
 
 	if !gjson.Valid(request) {
-		err = fmt.Errorf("Run: request is not valid JSON")
+		err = fmt.Errorf("RunOne: request is not valid JSON")
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 		return
 	}
@@ -32,52 +47,38 @@ func RunOne(request string, meta *Meta, db DB) (response string, err error) {
 
 	reqJSON := srcJSON.Get("request")
 	if !reqJSON.Exists() {
-		err = fmt.Errorf("Run: object 'request' is missing")
+		err = fmt.Errorf("RunOne: object 'request' is missing")
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 		return
 	}
 
 	cmdJSON := reqJSON.Get("command")
 	if !cmdJSON.Exists() {
-		err = fmt.Errorf("Run: field 'request.command' is missing")
+		err = fmt.Errorf("RunOne: field 'request.command' is missing")
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 		return
 	}
 
-	servJSON := reqJSON.Get("service")
-
 	command := cmdJSON.String()
+
+	servJSON := reqJSON.Get("service")
+	if !servJSON.Exists() {
+		err = fmt.Errorf("RunOne: %s - field 'request.service' is missing", command)
+		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+		return
+	}
+
 	switch command {
 	case "system":
-		if !servJSON.Exists() {
-			err = fmt.Errorf("Run: system - field 'request.service' is missing")
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			return
-		}
 		response, err = RunSystem(servJSON.String(), request, meta, db)
 	case "import":
-		if !servJSON.Exists() {
-			err = fmt.Errorf("Run: import - field 'request.service' is missing")
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			return
-		}
 		response, err = RunImport(servJSON.String(), request, meta, db)
 	case "export":
-		if !servJSON.Exists() {
-			err = fmt.Errorf("Run: export - field 'request.service' is missing")
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			return
-		}
 		response, err = RunExport(servJSON.String(), request, meta, db)
 	case "insert":
-		if !servJSON.Exists() {
-			err = fmt.Errorf("Run: insert - field 'request.service' is missing")
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			return
-		}
 		response, err = RunInsert(servJSON.String(), request, meta, db)
 	default:
-		err = fmt.Errorf("Run: unknown command '%s'", command)
+		err = fmt.Errorf("RunOne: unknown command '%s'", command)
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 		return
 	}

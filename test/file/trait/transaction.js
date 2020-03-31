@@ -1,4 +1,34 @@
 // Transaction (trait) - script
+function makeInsObject(command, service, name, props, traits) {
+    return {
+        "request": {
+            "command": command,
+            "service": service
+        },
+        "body": {
+            "name": name,
+            "props": props,
+            "traits": traits
+        }
+    }
+}
+
+function makeInsLink(command, service, relation, traitFrom, traitTo, objectFrom, objectTo, props) {
+    return {
+        "request": {
+            "command": command,
+            "service": service
+        },
+        "body": {
+            "relation": relation,
+            "trait-from": traitFrom,
+            "trait-to": traitTo,
+            "object-from": objectFrom,
+            "object-to": objectTo,
+            "props": props
+        }
+    }
+}
 
 function constructor(trait, obj) {
     //var traitStr = JSON.stringify(trait)
@@ -32,21 +62,15 @@ function constructor(trait, obj) {
                 var model = obj.pay.request.model;
                 if (model) {
                     var hashModel = makeHash(model);
+                    var insObject = makeInsObject("insert", "object", hashModel, model, ["Model"]);
+                    batch.push(insObject);
 
-                    var insModel = {
-                        "request": {
-                            "command": "insert",
-                            "service": "object"
-                        },
-                        "body": {
-                            "name": hashModel,
-                            "props": model,
-                            "traits": ["Model"]
-                        }
-                    };
-
-                    batch.push(insModel);
+                    var insLink = makeInsLink("insert", "link", "ref-to-model", "Transaction", "Model", props.transactionId, hashModel, {})
+                    batch.push(insLink);
                 }
+
+
+
 
                 var clientName = obj.pay.request.body.clientName;
                 if (clientName && clientName.length > 0) {
@@ -59,21 +83,12 @@ function constructor(trait, obj) {
                         "clientIssuedBy": obj.pay.request.body.clientIssuedBy, 
                         "clientTaxNumber": obj.pay.request.body.clientTaxNumber
                     };
-
                     //var hashClient = makeHash(client);
+                    var insObject = makeInsObject("insert", "object", clientName, client, ["Client"]);
+                    batch.push(insObject);
 
-                    var insClient = {
-                        "request": {
-                            "command": "insert",
-                            "service": "object"
-                        },
-                        "body": {
-                            "name": clientName,
-                            "props": client,
-                            "traits": ["Client"]
-                        }
-                    };
-                    batch.push(insClient);
+                    var insLink = makeInsLink("insert", "link", "ref-to-client", "Transaction", "Client", props.transactionId, hashModel, {})
+                    batch.push(insLink);
                 }
 
                 status = 0.0;

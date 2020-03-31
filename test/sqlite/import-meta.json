@@ -11,8 +11,13 @@
     "body": {
         "relations": [
             {
-                "uuid": "592d1faf-8600-4b60-91d2-ddf2d44d11e8",
-                "name": "has",
+                "uuid": "f9e55161-944b-49a5-beb2-8c37f84374df",
+                "name": "ref-to-model",
+                "props": {}
+            },
+            {
+                "uuid": "9e83dc99-a366-4165-9f21-2a69ccd75609",
+                "name": "ref-to-client",
                 "props": {}
             }
         ],
@@ -57,9 +62,16 @@
         ],
         "relation-traits": [
             {
-                "trait-from": "Terminal",
-                "relation": "has",
-                "trait-to": "Account",
+                "trait-from": "Transaction",
+                "relation": "ref-to-model",
+                "trait-to": "Model",
+                "props": {},
+                "lib": ""
+            },
+            {
+                "trait-from": "Transaction",
+                "relation": "ref-to-client",
+                "trait-to": "Client",
                 "props": {},
                 "lib": ""
             }

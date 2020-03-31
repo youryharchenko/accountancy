@@ -28,6 +28,7 @@ type RelationTraits struct {
 	TraitToName   string                 `xorm:"-" json:"trait-to"`
 	Props         map[string]interface{} `xorm:"jsonb" json:"props"`
 	Lib           string                 `xorm:"text"  json:"lib"`
+	LibContent    string                 `xorm:"-" json:"-"`
 	Status        int                    `xorm:"notnull index" json:"-"`
 	Created       time.Time              `xorm:"created" json:"-"`
 	Updated       time.Time              `xorm:"updated" json:"-"`
@@ -38,20 +39,6 @@ type RelationTraitsKey struct {
 	RelationName  string
 	TraitFromName string
 	TraitToName   string
-}
-
-// LinkObjects -
-type LinkObjects struct {
-	ID               int64
-	RelationTraitsID int64                  `xorm:"notnull unique(relation_traits_link_objects)"`
-	RelationName     string                 `xorm:"-" json:"relation"`
-	ObjectID         int64                  `xorm:"notnull unique(relation_traits_link_objects)"`
-	ObjectName       string                 `xorm:"-" json:"object-name"`
-	ObjectUUID       string                 `xorm:"-" json:"object-uuid"`
-	Props            map[string]interface{} `xorm:"jsonb"`
-	Status           int                    `xorm:"notnull index"`
-	Created          time.Time              `xorm:"created"`
-	Updated          time.Time              `xorm:"updated"`
 }
 
 // NewRelation -

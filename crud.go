@@ -35,7 +35,7 @@ func RunInsert(service string, request string, meta *Meta, db DB) (response stri
 	case "object":
 		response, err = InsertOrUpdateObject(db, objMap, meta)
 	case "link":
-		//response, err = InsertOrUpdateLink(sess, request, meta)
+		response, err = InsertOrUpdateLink(db, objMap, meta)
 	default:
 		err = fmt.Errorf("RunInsert: unknown service '%s'", service)
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
