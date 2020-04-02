@@ -16,6 +16,7 @@ type DB interface {
 	Find(rowsSlicePtr interface{}, condiBean ...interface{}) error
 	Update(bean interface{}, condiBean ...interface{}) (affected int64, err error)
 	ID(id interface{}) *xorm.Session
+	Where(query interface{}, args ...interface{}) *xorm.Session
 	Sync2(beans ...interface{}) error
 	//DropTable(bean interface{}) error
 }

@@ -353,6 +353,22 @@ func TestExportMetaSqlite(t *testing.T) {
 
 }
 
+func TestSelectObject(t *testing.T) {
+
+	src, err := ioutil.ReadFile("./test/sqlite/select-object.json")
+	if err != nil {
+		t.Error(err)
+	}
+
+	response, err := Run(string(src), nil, nil)
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Error(response)
+
+}
+
 func TestSync(t *testing.T) {
 
 	eng, err := Connect(dbDriver, dbConn, true)

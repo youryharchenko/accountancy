@@ -7,5 +7,6 @@
         "driver": "sqlite3",
         "connection": "./test/sqlite/test.db",
         "show": true
-    }
+    },
+    "body": {}
 }

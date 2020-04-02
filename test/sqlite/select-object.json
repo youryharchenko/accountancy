@@ -1,0 +1,21 @@
+{
+    "request": {
+        "command": "select",
+        "service": "object"
+    },
+    "db": {
+        "driver": "sqlite3",
+        "connection": "./test/sqlite/test.db",
+        "show": true
+    },
+    "body": {
+        "filter": {
+            "condition": "status = ?",
+            "params": [0]
+        },
+        "orderBy": "name asc",
+        "skip": 0,
+        "limit": 10,
+        "filterProps": "props.pay && props.pay.request.service == 'nparts'"
+    }
+}

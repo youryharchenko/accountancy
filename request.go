@@ -77,6 +77,8 @@ func RunOne(request string, meta *Meta, db DB) (response string, err error) {
 		response, err = RunExport(servJSON.String(), request, meta, db)
 	case "insert":
 		response, err = RunInsert(servJSON.String(), request, meta, db)
+	case "select":
+		response, err = RunSelect(servJSON.String(), request, meta, db)
 	default:
 		err = fmt.Errorf("RunOne: unknown command '%s'", command)
 		response = fmt.Sprintf(tmplResponse, err.Error(), -1)

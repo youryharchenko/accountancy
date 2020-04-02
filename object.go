@@ -1,11 +1,13 @@
 package accountancy
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/robertkrimen/otto"
 	"xorm.io/xorm"
 )
 
@@ -16,7 +18,7 @@ type Object struct {
 	Name    string                 `xorm:"varchar(1024) notnull unique" json:"name"`
 	Props   map[string]interface{} `xorm:"jsonb" json:"props"`
 	Hash    string                 `xorm:"text" json:"hash"`
-	Status  int                    `xorm:"notnull index" json:"-"`
+	Status  int                    `xorm:"notnull index" json:"status"`
 	Created time.Time              `xorm:"created" json:"-"`
 	Updated time.Time              `xorm:"updated" json:"-"`
 }
@@ -155,6 +157,114 @@ func InsertOrUpdateObject(db DB, objMap map[string]interface{}, meta *Meta) (res
 			return
 		}
 	}
+
+	return
+}
+
+// SelectObject -
+func SelectObject(db DB, objMap map[string]interface{}, meta *Meta) (response string, err error) {
+	if meta == nil {
+		meta, err = LoadMeta(db)
+		if err != nil {
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			return
+		}
+	}
+
+	filterMap, ok := objMap["filter"].(map[string]interface{})
+	if !ok {
+		filterMap = map[string]interface{}{}
+	}
+
+	condition, ok := filterMap["condition"].(string)
+	if !ok {
+		condition = ""
+	}
+	params, ok := filterMap["params"].([]interface{})
+	if !ok {
+		params = []interface{}{}
+	}
+
+	filterProps, ok := objMap["filterProps"].(string)
+	if !ok {
+		filterProps = "true"
+	}
+
+	orderBy, ok := objMap["orderBy"].(string)
+	if !ok {
+		orderBy = ""
+	}
+
+	skip, ok := objMap["skip"].(float64)
+	if !ok {
+		skip = float64(0)
+	}
+
+	limit, ok := objMap["limit"].(float64)
+	if !ok {
+		limit = float64(10)
+	}
+
+	log.Println("SelectObject:", filterMap, skip, limit)
+
+	list := []Object{}
+	err = db.Where(condition, params...).
+		OrderBy(orderBy).
+		//Limit(int(limit), int(skip)).
+		Find(&list)
+	if err != nil {
+		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+		return
+	}
+
+	log.Println(len(list))
+	result := []Object{}
+
+	vm := otto.New()
+	count := int64(0)
+	for j, obj := range list {
+		if int64(limit) <= count {
+			break
+		}
+		if int64(skip) > int64(j) {
+			continue
+		}
+
+		vm.Set("props", obj.Props)
+		var res otto.Value
+		res, err = vm.Eval(filterProps)
+		if err != nil {
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			return
+		}
+		var b bool
+		b, err = res.ToBoolean()
+		if err != nil {
+			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+			return
+		}
+		if b {
+			count++
+			result = append(result, obj)
+		}
+	}
+
+	respMap := map[string]interface{}{
+		"filter":      filterMap,
+		"skip":        skip,
+		"limit":       limit,
+		"filterProps": filterProps,
+		"count":       count,
+		"result":      result,
+	}
+
+	respBuf, err := json.MarshalIndent(respMap, "", "  ")
+	if err != nil {
+		response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+		return
+	}
+
+	response = string(respBuf)
 
 	return
 }
