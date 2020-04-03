@@ -6,11 +6,41 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/robertkrimen/otto"
 	"github.com/tidwall/gjson"
 	"xorm.io/xorm"
 )
+
+func testProps(vm *otto.Otto, props interface{}, filterProps string) (ok bool, err error) {
+	vmc := vm.Copy()
+
+	vmc.Set("props", props)
+	var res otto.Value
+	res, err = vmc.Eval(filterProps)
+	if err != nil {
+		return
+	}
+	ok, err = res.ToBoolean()
+	return
+}
+
+func makeFields(vm *otto.Otto, ent interface{}, fields string) (final interface{}, err error) {
+	if fields == "*" {
+		final = ent
+		return
+	}
+	fields = "var r = " + strings.ReplaceAll(fields, "'", "\"") + "; r"
+	vmc := vm.Copy()
+	vmc.Set("obj", ent)
+	res, err := vmc.Eval(fields)
+	if err != nil {
+		return
+	}
+	final, err = res.Export()
+	return
+}
 
 func relationTraitsInsert(db DB, relation *Relation, traitFrom *Trait, traitTo *Trait, props map[string]interface{}, lib string) (affected int64, err error) {
 	relationTraits := &RelationTraits{

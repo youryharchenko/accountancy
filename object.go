@@ -205,6 +205,11 @@ func SelectObject(db DB, objMap map[string]interface{}, meta *Meta) (response st
 		limit = float64(10)
 	}
 
+	fields, ok := objMap["fields"].(string)
+	if !ok {
+		fields = "*"
+	}
+
 	log.Println("SelectObject:", filterMap, skip, limit)
 
 	list := []Object{}
@@ -218,7 +223,7 @@ func SelectObject(db DB, objMap map[string]interface{}, meta *Meta) (response st
 	}
 
 	log.Println(len(list))
-	result := []Object{}
+	result := []interface{}{}
 
 	vm := otto.New()
 	count := int64(0)
@@ -230,22 +235,21 @@ func SelectObject(db DB, objMap map[string]interface{}, meta *Meta) (response st
 			continue
 		}
 
-		vm.Set("props", obj.Props)
-		var res otto.Value
-		res, err = vm.Eval(filterProps)
-		if err != nil {
-			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
-			return
-		}
 		var b bool
-		b, err = res.ToBoolean()
+		b, err = testProps(vm, obj.Props, filterProps)
 		if err != nil {
 			response = fmt.Sprintf(tmplResponse, err.Error(), -1)
 			return
 		}
 		if b {
 			count++
-			result = append(result, obj)
+			var fieldsMap interface{}
+			fieldsMap, err = makeFields(vm, obj, fields)
+			if err != nil {
+				response = fmt.Sprintf(tmplResponse, err.Error(), -1)
+				return
+			}
+			result = append(result, fieldsMap)
 		}
 	}
 
@@ -255,6 +259,7 @@ func SelectObject(db DB, objMap map[string]interface{}, meta *Meta) (response st
 		"limit":       limit,
 		"filterProps": filterProps,
 		"count":       count,
+		"fields":      fields,
 		"result":      result,
 	}
 

@@ -16,6 +16,7 @@
         "orderBy": "name asc",
         "skip": 0,
         "limit": 10,
-        "filterProps": "props.pay && props.pay.request.service == 'nparts'"
+        "filterProps": "props.pay && props.pay.request.service == 'nparts'",
+        "fields": "{'name':obj.name,'terminal':obj.props.pay.request.terminalId,'amount':obj.props.pay.request.body.amount,'flag':true}"
     }
 }
