@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"io/ioutil"
+	"strings"
 	"testing"
 	"text/template"
 
@@ -107,6 +108,11 @@ func TestSystemUploadSqlite(t *testing.T) {
 		var buff bytes.Buffer
 
 		err = tmpl.Execute(&buff, data)
+		if err != nil {
+			t.Error(err)
+		}
+
+		err = ioutil.WriteFile("./test/sqlite/out/"+strings.Replace(name, "/", "-", -1)+".json", buff.Bytes(), 0755)
 		if err != nil {
 			t.Error(err)
 		}
@@ -320,6 +326,11 @@ func TestImportDataSqlite(t *testing.T) {
 	var buff bytes.Buffer
 
 	err = tmpl.Execute(&buff, data)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = ioutil.WriteFile("./test/sqlite/out/data.json", buff.Bytes(), 0755)
 	if err != nil {
 		t.Error(err)
 	}

@@ -4,8 +4,8 @@
         "service": "object"
     },
     "db": {
-        "driver": "sqlite3",
-        "connection": "./test/sqlite/test.db",
+        "driver": "",
+        "connection": "",
         "show": true
     },
     "body": {

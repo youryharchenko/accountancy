@@ -254,13 +254,17 @@ func SelectObject(db DB, objMap map[string]interface{}, meta *Meta) (response st
 	}
 
 	respMap := map[string]interface{}{
-		"filter":      filterMap,
-		"skip":        skip,
-		"limit":       limit,
-		"filterProps": filterProps,
-		"count":       count,
-		"fields":      fields,
-		"result":      result,
+		"message": "ok",
+		"status":  0,
+		"body": map[string]interface{}{
+			"filter":      filterMap,
+			"skip":        skip,
+			"limit":       limit,
+			"filterProps": filterProps,
+			"count":       count,
+			"fields":      fields,
+			"result":      result,
+		},
 	}
 
 	respBuf, err := json.MarshalIndent(respMap, "", "  ")
